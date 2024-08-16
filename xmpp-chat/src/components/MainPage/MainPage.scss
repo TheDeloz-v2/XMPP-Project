@@ -1,0 +1,23 @@
+.main-container {
+  display: flex;
+  padding: 20px;
+  height: calc(100vh - 40px); // Considerando el padding
+  background-color: #2b2b2b;
+
+  .sidebar-left, .chat-box {
+      color: #fff;
+      padding: 20px;
+      background-color: #333;
+  }
+
+  .sidebar-left {
+      flex: 1; // Ajustar según necesidad
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+  }
+
+  .chat-box {
+      flex: 3; // Ajustar según necesidad
+  }
+}

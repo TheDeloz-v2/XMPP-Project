@@ -1,0 +1,79 @@
+import { client, xml } from "@xmpp/client";
+
+const XmppClientSingleton = (() => {
+    let xmppClient = null;
+
+    const createClient = ({ username, password }) => {
+        xmppClient = client({
+            service: "ws://alumchat.lol:7070/ws/",
+            domain: "alumchat.lol",
+            resource: "example",
+            username: username,
+            password: password,
+        });
+
+        xmppClient.username = username;
+
+        // Guardar las credenciales en localStorage
+        localStorage.setItem('xmppClientCredentials', JSON.stringify({ username, password }));
+
+        return xmppClient;
+    };
+
+    const getClient = () => {
+        if (!xmppClient) {
+            const storedCredentials = localStorage.getItem('xmppClientCredentials');
+            if (storedCredentials) {
+                const { username, password } = JSON.parse(storedCredentials);
+                xmppClient = createClient({ username, password });
+            }
+        }
+        return xmppClient;
+    };
+
+    const clearClient = () => {
+        xmppClient = null;
+        localStorage.removeItem('xmppClientCredentials');
+    };
+
+    const getContacts = () => {
+        return new Promise((resolve, reject) => {
+            const rosterIq = xml(
+                'iq',
+                { type: 'get', id: 'roster1' },
+                xml('query', { xmlns: 'jabber:iq:roster' })
+            );
+    
+            const handleRosterResponse = stanza => {
+                if (stanza.is('iq') && stanza.getChild('query')) {
+                    const items = stanza.getChild('query').getChildren('item');
+                    const contacts = items.map(item => ({
+                        jid: item.attrs.jid,
+                        name: item.attrs.name || item.attrs.jid.split('@')[0],
+                        state: 'offline', // Estado por defecto, se actualizará con los mensajes de presencia
+                        imageUrl: `https://api.adorable.io/avatars/40/${item.attrs.jid}.png`
+                    }));
+                    xmppClient.removeListener('stanza', handleRosterResponse);
+                    resolve(contacts);
+                }
+            };
+    
+            xmppClient.on('stanza', handleRosterResponse);
+    
+            xmppClient.send(rosterIq).catch((err) => {
+                xmppClient.removeListener('stanza', handleRosterResponse);
+                console.error('Error al obtener los contactos:', err);
+                reject(err);
+            });
+        });
+    };    
+
+    return {
+        createClient,
+        getClient,
+        clearClient,
+        getContacts,
+    };
+})();
+
+export default XmppClientSingleton;
