@@ -1,0 +1,49 @@
+.message-list {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #333;
+
+    .message {
+        margin: 5px 0;
+        
+        &.sent {
+            text-align: right;
+        }
+
+        &.received {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #444;
+            max-width: 60%;
+
+            p {
+                margin: 0;
+            }
+
+            .timestamp {
+                font-size: 10px;
+                color: #aaa;
+                margin-left: 5px;
+            }
+
+            .status {
+                font-size: 10px;
+                margin-left: 10px;
+
+                &.sent {
+                    color: #ccc;
+                }
+
+                &.read {
+                    color: #00ff00;
+                }
+            }
+        }
+    }
+}

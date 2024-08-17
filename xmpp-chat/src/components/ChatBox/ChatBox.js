@@ -1,16 +1,22 @@
 import React from 'react';
+import ChatHeader from './ChatHeader/ChatHeader';
+import MessageList from './MessageList/MessageList';
+import MessageInput from './MessageInput/MessageInput';
+import './ChatBox.scss';
 
-const ChatBox = () => {
+const ChatBox = ({ selectedContact, messages }) => {
+    if (!selectedContact) {
+        return <div className="chatbox">Selecciona un contacto para empezar a chatear</div>;
+    }
+
     return (
-        <div className="chat-box">
-            <div className="chat-header">Chat Header</div>
-            <div className="chat-messages">Messages</div>
-            <div className="chat-input">
-                <input type="text" placeholder="Type message..." />
-                <button>Send</button>
-            </div>
+        <div className="chatbox">
+            <ChatHeader contact={selectedContact} />
+            <MessageList messages={messages[selectedContact.id] || []} />
+            <MessageInput />
         </div>
     );
 };
 
 export default ChatBox;
+

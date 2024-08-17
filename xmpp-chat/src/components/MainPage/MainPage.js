@@ -9,6 +9,8 @@ import "./MainPage.scss";
 const MainPage = () => {
     const navigate = useNavigate();
     const [contacts, setContacts] = useState([]);
+    const [selectedContactId, setSelectedContactId] = useState(null);
+    const [messages, setMessages] = useState({});
     const xmppClient = XmppClientSingleton.getClient();
 
     useEffect(() => {
@@ -36,18 +38,43 @@ const MainPage = () => {
     const loadContacts = async () => {
         try {
             const contactList = await XmppClientSingleton.getContacts();
-            setContacts(contactList);
+            // Asignar un ID único a cada contacto
+            const contactsWithIds = contactList.map((contact, index) => ({
+                ...contact,
+                id: index + 1, // Asignar un ID basado en el índice, puedes cambiar la lógica si lo prefieres
+            }));
+            setContacts(contactsWithIds);
         } catch (error) {
             console.error('Error al cargar los contactos:', error);
         }
     };
 
+    const handleSelectContact = (contactId) => {
+        setSelectedContactId(contactId);
+        // Aquí podrías cargar mensajes desde el servidor para este contacto si es necesario
+        // Por ahora, simularemos la carga de mensajes con un simple setState.
+        setMessages(prevMessages => ({
+            ...prevMessages,
+            [contactId]: prevMessages[contactId] || [], // Asegura que haya un array de mensajes para este contacto
+        }));
+    };
+
+    const selectedContact = contacts.find(contact => contact.id === selectedContactId);
+
     return (
         <div className="main-container">
-            <SidebarLeft contacts={contacts} xmppClient={xmppClient} />
-            <ChatBox />
+            <SidebarLeft 
+                contacts={contacts} 
+                xmppClient={xmppClient} 
+                onSelectContact={handleSelectContact} 
+            />
+            <ChatBox 
+                selectedContact={selectedContact} 
+                messages={messages} 
+            />
         </div>
     );
 };
 
 export default MainPage;
+

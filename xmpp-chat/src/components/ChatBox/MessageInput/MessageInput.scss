@@ -1,0 +1,34 @@
+.message-input {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #3a3a3a; // Fondo gris más claro
+    border-top: 1px solid #4a4a4a;
+
+    input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 20px;
+        border: none;
+        background-color: #4a4a4a;
+        color: #fff;
+        margin-right: 10px;
+    }
+
+    button {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        margin-left: 5px;
+
+        &.attach-btn {
+            font-size: 24px;
+        }
+
+        &.emoji-btn {
+            font-size: 24px;
+        }
+    }
+}
