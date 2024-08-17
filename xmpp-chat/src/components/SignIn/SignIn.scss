@@ -54,4 +54,23 @@
           text-align: center;
       }
   }
+
+  .register-link {
+      margin-top: 10px;
+      font-size: 14px;
+      text-align: center;
+      color: #fff;
+
+      span {
+          color: #1e90ff; // Azul para "Registrarse"
+          text-decoration: underline;
+          cursor: pointer;
+          transition: color 0.3s;
+
+          &:hover {
+              color: #63a4ff;
+          }
+      }
+  }
 }
+
