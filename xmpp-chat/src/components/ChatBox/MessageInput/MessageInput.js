@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import './MessageInput.scss';
 
-const MessageInput = () => {
+const MessageInput = ({ onSendMessage }) => {
     const [message, setMessage] = useState("");
 
     const handleSendMessage = () => {
-        console.log("Mensaje enviado:", message);
-        setMessage("");
+        if (message.trim()) {
+            onSendMessage(message);
+            setMessage("");
+        }
     };
 
     return (
@@ -25,3 +27,4 @@ const MessageInput = () => {
 };
 
 export default MessageInput;
+

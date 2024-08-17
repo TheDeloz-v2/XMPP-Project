@@ -2,6 +2,7 @@ import { client, xml } from "@xmpp/client";
 
 const XmppClientSingleton = (() => {
     let xmppClient = null;
+    let messageHandlers = [];
 
     const createClient = ({ username, password }) => {
         xmppClient = client({
@@ -17,7 +18,47 @@ const XmppClientSingleton = (() => {
         // Guardar las credenciales en localStorage
         localStorage.setItem('xmppClientCredentials', JSON.stringify({ username, password }));
 
+        // Configurar el evento para manejar mensajes entrantes
+        xmppClient.on('stanza', handleIncomingMessage);
+
         return xmppClient;
+    };
+
+    const handleIncomingMessage = (stanza) => {
+        if (stanza.is('message') && stanza.attrs.type === 'chat') {
+            const from = stanza.attrs.from;
+            const body = stanza.getChildText('body');
+            const message = { from, body, timestamp: new Date() };
+
+            console.log(`Mensaje recibido de ${from}: ${body}`);
+
+            // Llamar a todos los handlers registrados
+            messageHandlers.forEach(handler => handler(message));
+        }
+    };
+
+    const sendMessage = (to, body) => {
+        const messageStanza = xml(
+            'message',
+            { to, type: 'chat' },
+            xml('body', {}, body)
+        );
+
+        xmppClient.send(messageStanza).then(() => {
+            console.log(`Mensaje enviado a ${to}: ${body}`);
+        }).catch(err => {
+            console.error('Error al enviar mensaje:', err);
+        });
+    };
+
+    const onMessage = (handler) => {
+        // Registrar un nuevo handler para los mensajes
+        messageHandlers.push(handler);
+    };
+
+    const removeMessageHandler = (handler) => {
+        // Eliminar un handler de mensajes
+        messageHandlers = messageHandlers.filter(h => h !== handler);
     };
 
     const getClient = () => {
@@ -105,6 +146,72 @@ const XmppClientSingleton = (() => {
         });
     };
     
+    const registerAccount = async (newUsername, newPassword, email = "", fullName = "") => {
+        try {
+            // Conectarse con la cuenta root
+            const rootClient = client({
+                service: "ws://alumchat.lol:7070/ws/",
+                domain: "alumchat.lol",
+                username: "lem21469-root",
+                password: "lem21469-rootpassword",
+            });
+
+            rootClient.on('status', status => {
+                console.log(`XMPP root client status: ${status}`);
+            });
+
+            await rootClient.start();
+
+            // Enviar solicitud de registro para la nueva cuenta
+            const registrationIQ = xml(
+                'iq',
+                { type: 'set', id: 'reg1' },
+                xml('query', { xmlns: 'jabber:iq:register' },
+                    xml('username', {}, newUsername),
+                    xml('password', {}, newPassword),
+                    email ? xml('email', {}, email) : null,
+                    fullName ? xml('name', {}, fullName) : null
+                )
+            );
+
+            const result = await rootClient.send(registrationIQ);
+            console.log('Resultado del registro:', result);
+
+            await rootClient.stop(); // Desconectarse de la cuenta root
+
+            return result;
+        } catch (error) {
+            console.error('Error al registrar la cuenta:', error);
+            throw new Error("Error al registrar la cuenta.");
+        }
+    };
+
+    const sendPresence = (status, message = "") => {
+        if (!xmppClient) return;
+
+        const presence = xml(
+            'presence',
+            {},
+            xml('show', {}, status),
+            xml('status', {}, message)
+        );
+
+        xmppClient.send(presence);
+    };
+
+    const onPresenceChange = (callback) => {
+        if (!xmppClient) return;
+
+        xmppClient.on('stanza', (stanza) => {
+            if (stanza.is('presence')) {
+                const from = stanza.attrs.from;
+                const status = stanza.getChildText('show') || 'available';
+                const message = stanza.getChildText('status') || '';
+                callback({ from, status, message });
+            }
+        });
+    };
+
     return {
         createClient,
         getClient,
@@ -112,9 +219,13 @@ const XmppClientSingleton = (() => {
         getContacts,
         addContact,
         deleteContact,
+        registerAccount,
+        sendMessage,
+        onMessage,
+        removeMessageHandler,
+        sendPresence,
+        onPresenceChange,
     };
-    
 })();
 
 export default XmppClientSingleton;
-
