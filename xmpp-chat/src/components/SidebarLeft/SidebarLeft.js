@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import XmppClientSingleton from "../../xmppClient";
 import AddContactModal from './AddContactModal/AddContactModal';
@@ -10,6 +10,37 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
+    const [presenceStatus, setPresenceStatus] = useState("available");
+    const [statusMessage, setStatusMessage] = useState("");
+    const [unreadCounts, setUnreadCounts] = useState({}); // Estado para contar los mensajes no leídos
+
+    useEffect(() => {
+        const handleIncomingMessage = (message) => {
+            setUnreadCounts(prevCounts => {
+                const contactJid = message.from.split('/')[0];
+                return {
+                    ...prevCounts,
+                    [contactJid]: (prevCounts[contactJid] || 0) + 1
+                };
+            });
+        };
+
+        XmppClientSingleton.onMessage(handleIncomingMessage);
+
+        return () => {
+            XmppClientSingleton.removeMessageHandler(handleIncomingMessage);
+        };
+    }, []);
+
+    const handleSelectContact = (contactId) => {
+        // Resetear el contador de mensajes no leídos cuando se selecciona un contacto
+        setUnreadCounts(prevCounts => {
+            const newCounts = { ...prevCounts };
+            delete newCounts[contactId];
+            return newCounts;
+        });
+        onSelectContact(contactId);
+    };
 
     const handleLogOut = async (e) => {
         e.preventDefault();
@@ -23,6 +54,16 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
         }
+    };
+
+    const handlePresenceChange = (status) => {
+        setPresenceStatus(status);
+        XmppClientSingleton.sendPresence(status, statusMessage);
+    };
+
+    const handleStatusMessageChange = (message) => {
+        setStatusMessage(message);
+        XmppClientSingleton.sendPresence(presenceStatus, message);
     };
 
     const handleAddContact = async (xmppAddress) => {
@@ -65,23 +106,47 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
                     <div
                         key={contact.id} 
                         className="contact-item"
-                        onClick={() => onSelectContact(contact.id)}
+                        onClick={() => handleSelectContact(contact.id)}
                     >
-                        <div className={`avatar ${contact.state === 'online' ? 'online' : ''}`}>
+                        <div className={`avatar ${contact.state}`}>
                             {contact.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="contact-info">
                             <div className="name">{contact.name}</div>
                             <div className="status">{contact.state}</div>
                         </div>
+                        {unreadCounts[contact.id] > 0 && (
+                            <div className="unread-count">
+                                {unreadCounts[contact.id]}
+                            </div>
+                        )}
                         <button className="info-btn" onClick={(e) => { e.stopPropagation(); openInfoModal(contact); }}>ℹ️</button>
                     </div>
                 ))}
             </div>
             <div className="profile-logout-section">
                 <div className="profile-info">
-                    <div className="avatar">{xmppClient.username.charAt(0).toUpperCase()}</div>
+                    <div className={`avatar ${presenceStatus}`}>
+                        {xmppClient.username.charAt(0).toUpperCase()}
+                        <div className="status-indicator"></div>
+                    </div>
                     <div>{xmppClient.username}</div>
+                    <select
+                        value={presenceStatus}
+                        onChange={(e) => handlePresenceChange(e.target.value)}
+                    >
+                        <option value="available">Available</option>
+                        <option value="away">Away</option>
+                        <option value="dnd">Busy</option>
+                        <option value="xa">Not Available</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                    <input
+                        type="text"
+                        value={statusMessage}
+                        onChange={(e) => handleStatusMessageChange(e.target.value)}
+                        placeholder="Status message..."
+                    />
                 </div>
                 <button onClick={handleLogOut}>Log Out</button>
             </div>
