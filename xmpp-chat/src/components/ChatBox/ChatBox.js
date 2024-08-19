@@ -6,7 +6,8 @@ import XmppClientSingleton from '../../xmppClient';
 import './ChatBox.scss';
 
 const ChatBox = ({ selectedContact }) => {
-    const [messages, setMessages] = useState({}); // Estado para manejar los mensajes de todas las conversaciones
+    const [messages, setMessages] = useState({});
+    const [replyingTo, setReplyingTo] = useState(null);
     const [contactStates, setContactStates] = useState({});
 
     useEffect(() => {
@@ -14,9 +15,33 @@ const ChatBox = ({ selectedContact }) => {
             setMessages(prevMessages => {
                 const contactJid = message.from.split('/')[0];
                 const contactMessages = prevMessages[contactJid] || [];
+
+                if (message.body === null) {
+                    const updatedMessages = contactMessages.map(msg => ({
+                        ...msg,
+                        status: 'seen',
+                    }));
+                    return {
+                        ...prevMessages,
+                        [contactJid]: updatedMessages,
+                    };
+                }
+
+                const isReply = message.body.startsWith('>');
+                let newMessage = { body: message.body, sent: false, timestamp: new Date().toLocaleTimeString(), status: 'received' };
+
+                if (isReply) {
+                    const [original, reply] = message.body.split('\n');
+                    newMessage = {
+                        ...newMessage,
+                        body: reply,
+                        replyTo: original.replace('>', '').trim(),
+                    };
+                }
+
                 return {
                     ...prevMessages,
-                    [contactJid]: [...contactMessages, { body: message.body, sent: false, timestamp: new Date().toLocaleTimeString(), status: 'received' }]
+                    [contactJid]: [...contactMessages, newMessage],
                 };
             });
         };
@@ -36,18 +61,24 @@ const ChatBox = ({ selectedContact }) => {
         };
     }, []);
 
-    const handleSendMessage = (message) => {
-        XmppClientSingleton.sendMessage(selectedContact.jid, message);
+    const handleSendMessage = (message, replyTo = null) => {
+        const formattedMessage = replyTo ? `> ${replyTo}\n${message}` : message;
+        XmppClientSingleton.sendMessage(selectedContact.jid, formattedMessage);
         setMessages(prevMessages => {
             const contactMessages = prevMessages[selectedContact.jid] || [];
             return {
                 ...prevMessages,
                 [selectedContact.jid]: [
                     ...contactMessages,
-                    { body: message, sent: true, timestamp: new Date().toLocaleTimeString(), status: 'sent' }
-                ]
+                    { body: message, sent: true, timestamp: new Date().toLocaleTimeString(), status: 'sent', replyTo },
+                ],
             };
         });
+        setReplyingTo(null);
+    };
+
+    const handleCancelReply = () => {
+        setReplyingTo(null);
     };
 
     if (!selectedContact) {
@@ -59,8 +90,17 @@ const ChatBox = ({ selectedContact }) => {
     return (
         <div className="chatbox">
             <ChatHeader contact={{ ...selectedContact, state: contactState.status, statusMessage: contactState.statusMessage }} />
-            <MessageList messages={messages[selectedContact.jid] || []} />
-            <MessageInput onSendMessage={handleSendMessage} />
+            <MessageList 
+                messages={messages[selectedContact.jid] || []}
+                onReply={(msg) => {
+                    setReplyingTo(msg);
+                }}
+            />
+            <MessageInput 
+                onSendMessage={handleSendMessage} 
+                replyingTo={replyingTo} 
+                onCancelReply={handleCancelReply}
+            />
         </div>
     );
 };

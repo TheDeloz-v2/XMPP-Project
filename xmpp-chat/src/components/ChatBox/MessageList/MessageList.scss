@@ -6,7 +6,8 @@
 
     .message {
         margin: 5px 0;
-        
+        position: relative;
+
         &.sent {
             text-align: right;
         }
@@ -21,6 +22,14 @@
             border-radius: 10px;
             background-color: #444;
             max-width: 60%;
+
+            blockquote {
+                margin: 0 0 5px;
+                padding-left: 10px;
+                border-left: 3px solid #ccc;
+                color: #aaa;
+                font-size: 12px;
+            }
 
             p {
                 margin: 0;
@@ -40,10 +49,19 @@
                     color: #ccc;
                 }
 
-                &.read {
+                &.read, &.seen {
                     color: #00ff00;
                 }
             }
+        }
+
+        .reply-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
         }
     }
 }

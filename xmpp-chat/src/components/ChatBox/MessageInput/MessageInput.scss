@@ -1,9 +1,34 @@
+.message-input-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #3a3a3a;
+    border-top: 1px solid #4a4a4a;
+}
+
+.replying-indicator {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background-color: #4a4a4a;
+    color: #fff;
+    border-radius: 20px 20px 0 0;
+
+    .cancel-reply-btn {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        margin-left: auto;
+        padding: 0 10px;
+    }
+}
+
 .message-input {
     display: flex;
     align-items: center;
     padding: 10px;
-    background-color: #3a3a3a; // Fondo gris más claro
-    border-top: 1px solid #4a4a4a;
+    background-color: #3a3a3a;
 
     input {
         flex: 1;
@@ -32,3 +57,4 @@
         }
     }
 }
+
