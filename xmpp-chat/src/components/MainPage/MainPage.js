@@ -73,6 +73,7 @@ const MainPage = () => {
             />
             <SidebarRight
                 xmppClient={xmppClient}
+                selectedContactId={selectedContactId}
             />
         </div>
     );

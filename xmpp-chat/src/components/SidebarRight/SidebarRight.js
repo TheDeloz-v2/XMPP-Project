@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import XmppClientSingleton from "../../xmppClient";
 import './SidebarRight.scss';
 
-const SidebarRight = ({ xmppClient }) => {
+const SidebarRight = ({ xmppClient, selectedContactId }) => {
     const navigate = useNavigate();
     const [presenceStatus, setPresenceStatus] = useState("available");
     const [statusMessage, setStatusMessage] = useState("");
+    const [notifications, setNotifications] = useState([]);
+
+    useEffect(() => {
+        const handleIncomingMessage = (message) => {
+            const contactJid = message.from.split('/')[0];
+            if (contactJid !== selectedContactId && message.body) {
+                setNotifications(prevNotifications => [
+                    ...prevNotifications,
+                    { jid: contactJid, body: message.body, id: new Date().getTime() }
+                ]);
+            }
+        };
+
+        XmppClientSingleton.onMessage(handleIncomingMessage);
+
+        return () => {
+            XmppClientSingleton.removeMessageHandler(handleIncomingMessage);
+        };
+    }, [selectedContactId]); // Asegúrate de que el efecto se ejecute cada vez que selectedContactId cambie
 
     const handleLogOut = async (e) => {
         e.preventDefault();
@@ -27,13 +46,30 @@ const SidebarRight = ({ xmppClient }) => {
         XmppClientSingleton.sendPresence(status, statusMessage);
     };
 
-    const handleStatusMessageChange = (message) => {
-        setStatusMessage(message);
-        XmppClientSingleton.sendPresence(presenceStatus, message);
+    const removeNotification = (id) => {
+        setNotifications(prevNotifications => 
+            prevNotifications.filter(notification => notification.id !== id)
+        );
+    };
+
+    const clearNotifications = () => {
+        setNotifications([]);
     };
 
     return (
         <div className="sidebar-right">
+            <div className="notifications-section">
+                <h3>Notificaciones</h3>
+                <button className="clear-all-btn" onClick={clearNotifications}>Eliminar todas</button>
+                <div className="notifications-list">
+                    {notifications.map(notification => (
+                        <div key={notification.id} className="notification-item">
+                            <div>{notification.jid}: {notification.body}</div>
+                            <button onClick={() => removeNotification(notification.id)}>x</button>
+                        </div>
+                    ))}
+                </div>
+            </div>
             <div className="profile-logout-section">
                 <div className="profile-info">
                     <div className={`avatar ${presenceStatus}`}>
@@ -54,7 +90,7 @@ const SidebarRight = ({ xmppClient }) => {
                     <input
                         type="text"
                         value={statusMessage}
-                        onChange={(e) => handleStatusMessageChange(e.target.value)}
+                        onChange={(e) => setStatusMessage(e.target.value)}
                         placeholder="Status message..."
                     />
                 </div>

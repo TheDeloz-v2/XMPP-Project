@@ -4,16 +4,72 @@
     justify-content: space-between;
     background-color: #3a3a3a; // Fondo gris más claro
     padding: 20px;
+    width: 25%;
     border-radius: 8px;
 
+    .notifications-section {
+        background-color: #4a4a4a;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 20px;
+        height: 100%;
+
+        h3 {
+            margin: 0;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .clear-all-btn {
+            background-color: #ac2929;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background-color: #cc0000;
+            }
+        }
+
+        .notifications-list {
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #5a5a5a;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #fff;
+
+            button {
+                background: none;
+                border: none;
+                color: #ff0000;
+                cursor: pointer;
+                font-size: 16px;
+            }
+        }
+    }
+
     .profile-logout-section {
-        background-color: #4a4a4a; // Fondo de la sección de perfil y logout
+        background-color: #4a4a4a;
         border-radius: 8px;
         padding: 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        height: 180px;
         gap: 5px;
 
         button {
@@ -97,21 +153,7 @@
                     color: #bbb;
                 }
             }
-    
-            button {
-                margin-top: 10px;
-                background-color: #565656;
-                color: #fff;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background-color 0.3s;
-    
-                &:hover {
-                    background-color: #6c6c6c;
-                }
-            }
         }
     }
 }
+

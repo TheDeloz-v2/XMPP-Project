@@ -30,7 +30,6 @@ const ChatHeader = ({ contact }) => {
             <div className="chat-options">
                 <button className="info-btn">ⓘ</button>
                 <button className="mute-btn">🔇</button>
-                <button className="block-btn">🚫</button>
             </div>
         </div>
     );

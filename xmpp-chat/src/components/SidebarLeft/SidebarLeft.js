@@ -10,6 +10,7 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
     const [selectedContact, setSelectedContact] = useState(null);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [contactStates, setContactStates] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const handleIncomingMessage = (message) => {
@@ -50,6 +51,14 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
         setIsInfoModalOpen(true);
     };
 
+    const handleSearch = (event) => {
+        setSearchTerm(event.target.value);
+    };
+
+    const filteredContacts = contacts.filter((contact) => {
+        return contact.name.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
     return (
         <div className="sidebar-left">
             <div className="search-add-section">
@@ -57,11 +66,13 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
                     type="text"
                     className="search-box"
                     placeholder="Buscar contactos..."
+                    value={searchTerm}
+                    onChange={handleSearch}
                 />
                 <button className="add-contact-btn" onClick={() => setIsAddModalOpen(true)}>+</button>
             </div>
             <div className="contact-list">
-                {contacts.map((contact) => {
+                {filteredContacts.map((contact) => {
                     const contactState = contactStates[contact.jid] || {};
                     return (
                         <div
