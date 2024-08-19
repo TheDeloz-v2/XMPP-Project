@@ -63,7 +63,8 @@
             background-color: #5a5a5a; // Fondo de cada tarjeta de contacto
             padding: 10px;
             border-radius: 8px;
-
+            position: relative; // Para que la burbuja de estado esté posicionada correctamente
+        
             .avatar {
                 width: 40px;
                 height: 40px;
@@ -76,42 +77,69 @@
                 font-size: 18px;
                 font-weight: bold;
                 position: relative;
-
-                &::after {
-                    content: "";
+        
+                .status-indicator {
                     position: absolute;
-                    bottom: -2px;
-                    right: -2px;
+                    bottom: 0;
+                    right: 0;
                     width: 12px;
                     height: 12px;
                     border-radius: 50%;
-                    background-color: #888888; // Indicador gris por defecto
-                    border: 2px solid #5a5a5a;
-
-                    &.online {
-                        background-color: #00ff00; // Indicador verde si está online
-                    }
+                    border: 2px solid #2d2d2d; /* Asegúrate de que coincida con el color de fondo del avatar */
+                }
+        
+                &.available .status-indicator {
+                    background-color: #00ff00; /* Verde */
+                }
+        
+                &.away .status-indicator {
+                    background-color: #ffa500; /* Naranja */
+                }
+        
+                &.xa .status-indicator {
+                    background-color: #ff0000; /* Rojo */
+                }
+        
+                &.dnd .status-indicator {
+                    background-color: #ff0000; /* Rojo */
+                    border: 2px solid white; /* Línea horizontal blanca */
+                }
+        
+                &.offline .status-indicator {
+                    background-color: #888888; /* Gris */
                 }
             }
-
+        
             .contact-info {
                 margin-left: 10px;
                 flex-grow: 1; // Asegura que el texto ocupe el espacio disponible
                 display: flex;
                 flex-direction: column;
                 color: #fff;
-
+        
                 .name {
                     font-size: 16px;
                     font-weight: bold;
                 }
-
+        
                 .status {
                     font-size: 12px;
                     color: #ccc;
                 }
             }
-
+        
+            .unread-count {
+                background-color: #007bff;
+                color: #fff;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
+        
             .info-btn {
                 background: none;
                 border: none;

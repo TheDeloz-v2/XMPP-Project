@@ -8,9 +8,9 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
-    const [unreadCounts, setUnreadCounts] = useState({}); 
+    const [unreadCounts, setUnreadCounts] = useState({});
     const [contactStates, setContactStates] = useState({});
-    
+
     useEffect(() => {
         const handleIncomingMessage = (message) => {
             setUnreadCounts(prevCounts => {
@@ -45,26 +45,6 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
         onSelectContact(contactId);
     };
 
-    const handleAddContact = async (xmppAddress) => {
-        try {
-            await XmppClientSingleton.addContact(xmppAddress);
-            const updatedContacts = await XmppClientSingleton.getContacts();
-            onSelectContact(updatedContacts);
-        } catch (error) {
-            console.error('Error al añadir contacto:', error);
-        }
-    };
-
-    const handleDeleteContact = async (jid) => {
-        try {
-            await XmppClientSingleton.deleteContact(jid);
-            const updatedContacts = await XmppClientSingleton.getContacts();
-            onSelectContact(updatedContacts);
-        } catch (error) {
-            console.error('Error al eliminar contacto:', error);
-        }
-    };
-
     const openInfoModal = (contact) => {
         setSelectedContact(contact);
         setIsInfoModalOpen(true);
@@ -91,6 +71,7 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
                         >
                             <div className={`avatar ${contactState.status || 'offline'}`}>
                                 {contact.name.charAt(0).toUpperCase()}
+                                <div className="status-indicator"></div>
                             </div>
                             <div className="contact-info">
                                 <div className="name">{contact.name}</div>
@@ -110,13 +91,13 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
             <AddContactModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
-                onAddContact={handleAddContact}
+                onAddContact={(jid, message, shareStatus) => XmppClientSingleton.addContact(jid, message, shareStatus)}
             />
             <ContactInfoModal
                 isOpen={isInfoModalOpen}
                 contact={selectedContact}
                 onClose={() => setIsInfoModalOpen(false)}
-                onDeleteContact={handleDeleteContact}
+                onDeleteContact={(jid) => XmppClientSingleton.deleteContact(jid)}
             />
         </div>
     );

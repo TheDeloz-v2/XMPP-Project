@@ -7,11 +7,12 @@ import './ChatBox.scss';
 
 const ChatBox = ({ selectedContact }) => {
     const [messages, setMessages] = useState({}); // Estado para manejar los mensajes de todas las conversaciones
+    const [contactStates, setContactStates] = useState({});
 
     useEffect(() => {
         const handleIncomingMessage = (message) => {
             setMessages(prevMessages => {
-                const contactJid = message.from.split('/')[0]; // Asegurar que el JID no incluya el recurso
+                const contactJid = message.from.split('/')[0];
                 const contactMessages = prevMessages[contactJid] || [];
                 return {
                     ...prevMessages,
@@ -20,7 +21,15 @@ const ChatBox = ({ selectedContact }) => {
             });
         };
 
+        const handlePresenceChange = ({ from, status, message }) => {
+            setContactStates(prevStates => ({
+                ...prevStates,
+                [from]: { status, statusMessage: message }
+            }));
+        };
+
         XmppClientSingleton.onMessage(handleIncomingMessage);
+        XmppClientSingleton.onPresenceChange(handlePresenceChange);
 
         return () => {
             XmppClientSingleton.removeMessageHandler(handleIncomingMessage);
@@ -45,9 +54,11 @@ const ChatBox = ({ selectedContact }) => {
         return <div className="chatbox">Selecciona un contacto para empezar a chatear</div>;
     }
 
+    const contactState = contactStates[selectedContact.jid] || {};
+
     return (
         <div className="chatbox">
-            <ChatHeader contact={selectedContact} />
+            <ChatHeader contact={{ ...selectedContact, state: contactState.status, statusMessage: contactState.statusMessage }} />
             <MessageList messages={messages[selectedContact.jid] || []} />
             <MessageInput onSendMessage={handleSendMessage} />
         </div>

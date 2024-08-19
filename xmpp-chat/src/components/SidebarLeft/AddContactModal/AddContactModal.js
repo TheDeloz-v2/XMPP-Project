@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import './AddContactModal.scss';
 
 const AddContactModal = ({ isOpen, onClose, onAddContact }) => {
-    const [xmppAddress, setXmppAddress] = useState('');
+    const [xmppAddress, setXmppAddress] = useState("");
+    const [message, setMessage] = useState("");
+    const [shareStatus, setShareStatus] = useState(false);
 
-    const handleAddContact = async () => {
+    const handleAdd = async () => {
         try {
-            await onAddContact(xmppAddress);
-            setXmppAddress(''); // Limpiar el campo de texto
-            onClose(); // Cerrar el modal
+            await onAddContact(xmppAddress, message, shareStatus);
+            onClose();
         } catch (error) {
-            console.error('Error al agregar el contacto:', error);
-            // Aquí puedes manejar errores y mostrarlos en el modal si es necesario
+            console.error('Error al añadir contacto:', error);
         }
     };
 
@@ -23,13 +23,26 @@ const AddContactModal = ({ isOpen, onClose, onAddContact }) => {
                 <h2>Añadir Contacto</h2>
                 <input
                     type="text"
-                    placeholder="Dirección XMPP"
+                    placeholder="XMPP Address"
                     value={xmppAddress}
                     onChange={(e) => setXmppAddress(e.target.value)}
                 />
+                <textarea
+                    placeholder="Mensaje"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                />
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={shareStatus}
+                        onChange={(e) => setShareStatus(e.target.checked)}
+                    />
+                    Compartir mi estado
+                </label>
                 <div className="modal-buttons">
-                    <button onClick={handleAddContact}>Añadir</button>
-                    <button onClick={onClose}>Cancelar</button>
+                    <button onClick={handleAdd}>Añadir Contacto</button>
+                    <button onClick={onClose}>Cerrar</button>
                 </div>
             </div>
         </div>

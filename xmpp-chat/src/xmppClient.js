@@ -3,6 +3,7 @@ import { client, xml } from "@xmpp/client";
 const XmppClientSingleton = (() => {
     let xmppClient = null;
     let messageHandlers = [];
+    let contacts = [];
 
     const createClient = ({ username, password }) => {
         xmppClient = client({
@@ -88,10 +89,12 @@ const XmppClientSingleton = (() => {
             const handleRosterResponse = stanza => {
                 if (stanza.is('iq') && stanza.getChild('query')) {
                     const items = stanza.getChild('query').getChildren('item');
-                    const contacts = items.map(item => ({
+                    contacts = items.map(item => ({
                         jid: item.attrs.jid,
                         name: item.attrs.name || item.attrs.jid.split('@')[0],
                         state: 'offline', // Estado por defecto, se actualizará con los mensajes de presencia
+                        isSharingMyStatus: false,
+                        isSharingTheirStatus: false,
                         statusMessage: '', // Mensaje de estado por defecto
                         imageUrl: `https://api.adorable.io/avatars/40/${item.attrs.jid}.png`
                     }));
@@ -118,19 +121,35 @@ const XmppClientSingleton = (() => {
                 const from = stanza.attrs.from.split('/')[0]; // Obtener solo el JID base
                 const status = stanza.getChildText('show') || 'available';
                 const message = stanza.getChildText('status') || '';
+                
+                contacts = contacts.map(contact => 
+                    contact.jid === from 
+                    ? { ...contact, state: status, statusMessage: message, isSharingTheirStatus: true }
+                    : contact
+                );
+
                 callback({ from, status, message });
             }
         });
     };    
 
-    const addContact = (jid) => {
+    const addContact = (jid, message, shareStatus) => {
         return new Promise((resolve, reject) => {
             const subscribeIq = xml(
                 'presence',
-                { to: jid, type: 'subscribe' }
+                { to: jid, type: 'subscribe' },
+                xml('status', {}, message)
             );
 
             xmppClient.send(subscribeIq).then(() => {
+                if (shareStatus) {
+                    sendPresence('available', 'Comparto mi estado');
+                    contacts = contacts.map(contact =>
+                        contact.jid === jid 
+                        ? { ...contact, isSharingMyStatus: true } 
+                        : contact
+                    );
+                }
                 console.log(`Solicitud de suscripción enviada a ${jid}`);
                 resolve();
             }).catch((err) => {
@@ -151,6 +170,7 @@ const XmppClientSingleton = (() => {
             );
     
             xmppClient.send(unsubscribeIq).then(() => {
+                contacts = contacts.filter(contact => contact.jid !== jid);
                 console.log(`El contacto ${jid} ha sido eliminado.`);
                 resolve();
             }).catch((err) => {
@@ -213,6 +233,22 @@ const XmppClientSingleton = (() => {
         xmppClient.send(presence);
     };
 
+    const onToggleStatusSharing = (jid, type) => {
+        contacts = contacts.map(contact =>
+            contact.jid === jid 
+            ? { ...contact, [type === 'myStatus' ? 'isSharingMyStatus' : 'isSharingTheirStatus']: !contact[type === 'myStatus' ? 'isSharingMyStatus' : 'isSharingTheirStatus'] } 
+            : contact
+        );
+
+        if (type === 'myStatus') {
+            if (contacts.find(contact => contact.jid === jid).isSharingMyStatus) {
+                sendPresence('available', 'Comparto mi estado');
+            } else {
+                sendPresence('unavailable', 'Dejo de compartir mi estado');
+            }
+        }
+    };
+
     return {
         createClient,
         getClient,
@@ -226,6 +262,7 @@ const XmppClientSingleton = (() => {
         removeMessageHandler,
         sendPresence,
         onPresenceChange,
+        onToggleStatusSharing
     };
 })();
 
