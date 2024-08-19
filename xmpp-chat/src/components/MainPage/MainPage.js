@@ -3,6 +3,7 @@ import { xml } from "@xmpp/client";
 import { useNavigate } from 'react-router-dom';
 import XmppClientSingleton from "../../xmppClient";
 import SidebarLeft from "../SidebarLeft/SidebarLeft";
+import SidebarRight from "../SidebarRight/SidebarRight";
 import ChatBox from "../ChatBox/ChatBox";
 import "./MainPage.scss";
 
@@ -51,8 +52,6 @@ const MainPage = () => {
 
     const handleSelectContact = (contactId) => {
         setSelectedContactId(contactId);
-        // Aquí podrías cargar mensajes desde el servidor para este contacto si es necesario
-        // Por ahora, simularemos la carga de mensajes con un simple setState.
         setMessages(prevMessages => ({
             ...prevMessages,
             [contactId]: prevMessages[contactId] || [], // Asegura que haya un array de mensajes para este contacto
@@ -71,6 +70,9 @@ const MainPage = () => {
             <ChatBox 
                 selectedContact={selectedContact} 
                 messages={messages} 
+            />
+            <SidebarRight
+                xmppClient={xmppClient}
             />
         </div>
     );

@@ -4,17 +4,22 @@
   height: calc(100vh - 40px); // Considerando el padding
   background-color: #2b2b2b;
 
-  .sidebar-left, .chat-box {
+  .sidebar-left, .sidebar-right, .chat-box {
       color: #fff;
       padding: 20px;
       background-color: #333;
   }
 
   .sidebar-left {
-      flex: 1; // Ajustar según necesidad
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: space-between;  
+  }
+
+  .sidebar-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .chat-box {

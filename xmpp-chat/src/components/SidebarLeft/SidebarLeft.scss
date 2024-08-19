@@ -53,7 +53,7 @@
         background-color: #4a4a4a; // Fondo de la sección de contactos
         border-radius: 8px;
         padding: 10px;
-        height: 340px; // Altura fija de la lista de contactos
+        height: 100%; // Altura fija de la lista de contactos
         overflow-y: auto; // Habilitar scrollbar si hay demasiados contactos
 
         .contact-item {
