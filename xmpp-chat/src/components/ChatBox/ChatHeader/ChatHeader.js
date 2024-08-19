@@ -3,7 +3,7 @@ import './ChatHeader.scss';
 
 const ChatHeader = ({ contact }) => {
     if (!contact) {
-        return null; // Si no hay contacto seleccionado, no mostrar nada
+        return null;
     }
 
     return (
@@ -15,6 +15,7 @@ const ChatHeader = ({ contact }) => {
                 <div className="contact-details">
                     <div className="contact-name">{contact.name}</div>
                     <div className="contact-status">{contact.state === 'online' ? 'En línea' : 'Desconectado'}</div>
+                    <div className="status-message">{contact.statusMessage || ''}</div>
                 </div>
             </div>
             <div className="chat-options">

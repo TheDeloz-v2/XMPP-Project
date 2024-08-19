@@ -92,6 +92,7 @@ const XmppClientSingleton = (() => {
                         jid: item.attrs.jid,
                         name: item.attrs.name || item.attrs.jid.split('@')[0],
                         state: 'offline', // Estado por defecto, se actualizará con los mensajes de presencia
+                        statusMessage: '', // Mensaje de estado por defecto
                         imageUrl: `https://api.adorable.io/avatars/40/${item.attrs.jid}.png`
                     }));
                     xmppClient.removeListener('stanza', handleRosterResponse);
@@ -108,6 +109,19 @@ const XmppClientSingleton = (() => {
             });
         });
     };
+    
+    const onPresenceChange = (callback) => {
+        if (!xmppClient) return;
+    
+        xmppClient.on('stanza', (stanza) => {
+            if (stanza.is('presence')) {
+                const from = stanza.attrs.from.split('/')[0]; // Obtener solo el JID base
+                const status = stanza.getChildText('show') || 'available';
+                const message = stanza.getChildText('status') || '';
+                callback({ from, status, message });
+            }
+        });
+    };    
 
     const addContact = (jid) => {
         return new Promise((resolve, reject) => {
@@ -197,19 +211,6 @@ const XmppClientSingleton = (() => {
         );
 
         xmppClient.send(presence);
-    };
-
-    const onPresenceChange = (callback) => {
-        if (!xmppClient) return;
-
-        xmppClient.on('stanza', (stanza) => {
-            if (stanza.is('presence')) {
-                const from = stanza.attrs.from;
-                const status = stanza.getChildText('show') || 'available';
-                const message = stanza.getChildText('status') || '';
-                callback({ from, status, message });
-            }
-        });
     };
 
     return {

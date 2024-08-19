@@ -12,7 +12,8 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
     const [selectedContact, setSelectedContact] = useState(null);
     const [presenceStatus, setPresenceStatus] = useState("available");
     const [statusMessage, setStatusMessage] = useState("");
-    const [unreadCounts, setUnreadCounts] = useState({}); // Estado para contar los mensajes no leídos
+    const [unreadCounts, setUnreadCounts] = useState({}); 
+    const [contactStates, setContactStates] = useState({}); // Estado para manejar los estados de presencia
 
     useEffect(() => {
         const handleIncomingMessage = (message) => {
@@ -27,13 +28,19 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
 
         XmppClientSingleton.onMessage(handleIncomingMessage);
 
+        XmppClientSingleton.onPresenceChange(({ from, status, message }) => {
+            setContactStates(prevStates => ({
+                ...prevStates,
+                [from]: { status, statusMessage: message }
+            }));
+        });
+
         return () => {
             XmppClientSingleton.removeMessageHandler(handleIncomingMessage);
         };
     }, []);
 
     const handleSelectContact = (contactId) => {
-        // Resetear el contador de mensajes no leídos cuando se selecciona un contacto
         setUnreadCounts(prevCounts => {
             const newCounts = { ...prevCounts };
             delete newCounts[contactId];
@@ -102,27 +109,31 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
                 <button className="add-contact-btn" onClick={() => setIsAddModalOpen(true)}>+</button>
             </div>
             <div className="contact-list">
-                {contacts.map((contact) => (
-                    <div
-                        key={contact.id} 
-                        className="contact-item"
-                        onClick={() => handleSelectContact(contact.id)}
-                    >
-                        <div className={`avatar ${contact.state}`}>
-                            {contact.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="contact-info">
-                            <div className="name">{contact.name}</div>
-                            <div className="status">{contact.state}</div>
-                        </div>
-                        {unreadCounts[contact.id] > 0 && (
-                            <div className="unread-count">
-                                {unreadCounts[contact.id]}
+                {contacts.map((contact) => {
+                    const contactState = contactStates[contact.jid] || {};
+                    return (
+                        <div
+                            key={contact.id} 
+                            className="contact-item"
+                            onClick={() => handleSelectContact(contact.id)}
+                        >
+                            <div className={`avatar ${contactState.status || 'offline'}`}>
+                                {contact.name.charAt(0).toUpperCase()}
                             </div>
-                        )}
-                        <button className="info-btn" onClick={(e) => { e.stopPropagation(); openInfoModal(contact); }}>ℹ️</button>
-                    </div>
-                ))}
+                            <div className="contact-info">
+                                <div className="name">{contact.name}</div>
+                                <div className="status">{contactState.status || 'offline'}</div>
+                                <div className="status-message">{contactState.statusMessage || ''}</div>
+                            </div>
+                            {unreadCounts[contact.id] > 0 && (
+                                <div className="unread-count">
+                                    {unreadCounts[contact.id]}
+                                </div>
+                            )}
+                            <button className="info-btn" onClick={(e) => { e.stopPropagation(); openInfoModal(contact); }}>ℹ️</button>
+                        </div>
+                    );
+                })}
             </div>
             <div className="profile-logout-section">
                 <div className="profile-info">
