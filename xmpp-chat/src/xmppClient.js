@@ -249,6 +249,23 @@ const XmppClientSingleton = (() => {
         }
     };
 
+    const deleteAccount = async () => {
+        try {
+            const iq = xml(
+                'iq',
+                { type: 'set', id: 'delete1' },
+                xml('query', { xmlns: 'jabber:iq:register' },
+                    xml('remove')
+                )
+            );
+            await xmppClient.send(iq);
+            console.log('Cuenta eliminada del servidor.');
+            
+        } catch (error) {
+            console.error('Error al eliminar la cuenta:', error);
+        }
+    };    
+
     return {
         createClient,
         getClient,
@@ -262,7 +279,8 @@ const XmppClientSingleton = (() => {
         removeMessageHandler,
         sendPresence,
         onPresenceChange,
-        onToggleStatusSharing
+        onToggleStatusSharing,
+        deleteAccount,
     };
 })();
 

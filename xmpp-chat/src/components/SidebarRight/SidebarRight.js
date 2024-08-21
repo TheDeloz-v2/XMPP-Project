@@ -41,6 +41,18 @@ const SidebarRight = ({ xmppClient, selectedContactId }) => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        try {
+            await XmppClientSingleton.deleteAccount();
+            console.log('Cuenta eliminada. Redirigiendo a inicio de sesión.');
+            navigate('/');
+
+        } catch (error) {
+            console.error('Error al eliminar la cuenta:', error);
+        }
+    };
+    
+
     const handlePresenceChange = (status) => {
         setPresenceStatus(status);
         XmppClientSingleton.sendPresence(status, statusMessage);
@@ -95,6 +107,7 @@ const SidebarRight = ({ xmppClient, selectedContactId }) => {
                     />
                 </div>
                 <button onClick={handleLogOut}>Log Out</button>
+                <button onClick={handleDeleteAccount} className="delete-account-btn">Eliminar Cuenta</button>
             </div>
         </div>
     );
