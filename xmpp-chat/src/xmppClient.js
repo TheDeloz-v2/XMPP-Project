@@ -25,17 +25,43 @@ const XmppClientSingleton = (() => {
         return xmppClient;
     };
 
+    let updateContactsHandler = null;
+
     const handleIncomingMessage = (stanza) => {
         if (stanza.is('message') && stanza.attrs.type === 'chat') {
-            const from = stanza.attrs.from;
+            const from = stanza.attrs.from.split('/')[0]; // Obtener solo el JID base
             const body = stanza.getChildText('body');
             const message = { from, body, timestamp: new Date() };
 
             console.log(`Mensaje recibido de ${from}: ${body}`);
 
+            // Verificar si el contacto ya existe
+            if (!contacts.find(contact => contact.jid === from)) {
+                // Si no existe, agregar el contacto
+                contacts.push({
+                    jid: from,
+                    name: from.split('@')[0], // Usar la parte del usuario del JID como nombre
+                    state: 'offline', // Estado por defecto, se actualizará con los mensajes de presencia
+                    isSharingMyStatus: false,
+                    isSharingTheirStatus: false,
+                    statusMessage: '',
+                    imageUrl: `https://api.adorable.io/avatars/40/${from}.png`,
+                    isNotInContactList: true // Indicador de que no está en la lista de contactos
+                });
+
+                // Actualizar la lista de contactos
+                if (updateContactsHandler) {
+                    updateContactsHandler([...contacts]);
+                }
+            }
+
             // Llamar a todos los handlers registrados
             messageHandlers.forEach(handler => handler(message));
         }
+    };
+
+    const onUpdateContacts = (handler) => {
+        updateContactsHandler = handler;
     };
 
     const sendMessage = (to, body) => {
@@ -281,6 +307,7 @@ const XmppClientSingleton = (() => {
         onPresenceChange,
         onToggleStatusSharing,
         deleteAccount,
+        onUpdateContacts,
     };
 })();
 

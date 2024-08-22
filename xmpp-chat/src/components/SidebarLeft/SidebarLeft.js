@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import XmppClientSingleton from "../../xmppClient";
 import AddContactModal from './AddContactModal/AddContactModal';
 import ContactInfoModal from './ContactInfoModal/ContactInfoModal';
+import NonContactsList from './NonContactsList/NonContactsList'; // Importa el nuevo componente
 import './SidebarLeft.scss';
 
-const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
+const SidebarLeft = ({ xmppClient, onSelectContact }) => {
+    const [contacts, setContacts] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
@@ -13,14 +15,24 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
+        const loadContacts = async () => {
+            const initialContacts = await XmppClientSingleton.getContacts();
+            setContacts(initialContacts);
+        };
+
+        loadContacts();
+
+        XmppClientSingleton.onUpdateContacts((updatedContacts) => {
+            setContacts(updatedContacts);
+        });
+
         const handleIncomingMessage = (message) => {
-            setUnreadCounts(prevCounts => {
-                const contactJid = message.from.split('/')[0];
-                return {
-                    ...prevCounts,
-                    [contactJid]: (prevCounts[contactJid] || 0) + 1
-                };
-            });
+            const contactJid = message.from.split('/')[0];
+
+            setUnreadCounts(prevCounts => ({
+                ...prevCounts,
+                [contactJid]: (prevCounts[contactJid] || 0) + 1
+            }));
         };
 
         XmppClientSingleton.onMessage(handleIncomingMessage);
@@ -37,13 +49,13 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
         };
     }, []);
 
-    const handleSelectContact = (contactId) => {
+    const handleSelectContact = (contactJid) => {
         setUnreadCounts(prevCounts => {
             const newCounts = { ...prevCounts };
-            delete newCounts[contactId];
+            delete newCounts[contactJid];
             return newCounts;
         });
-        onSelectContact(contactId);
+        onSelectContact(contactJid);
     };
 
     const openInfoModal = (contact) => {
@@ -72,13 +84,14 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
                 <button className="add-contact-btn" onClick={() => setIsAddModalOpen(true)}>+</button>
             </div>
             <div className="contact-list">
+                <h3>Contactos</h3>
                 {filteredContacts.map((contact) => {
                     const contactState = contactStates[contact.jid] || {};
                     return (
                         <div
-                            key={contact.id} 
+                            key={contact.jid} 
                             className="contact-item"
-                            onClick={() => handleSelectContact(contact.id)}
+                            onClick={() => handleSelectContact(contact.jid)}
                         >
                             <div className={`avatar ${contactState.status || 'offline'}`}>
                                 {contact.name.charAt(0).toUpperCase()}
@@ -89,15 +102,21 @@ const SidebarLeft = ({ contacts, xmppClient, onSelectContact }) => {
                                 <div className="status">{contactState.status || 'offline'}</div>
                                 <div className="status-message">{contactState.statusMessage || ''}</div>
                             </div>
-                            {unreadCounts[contact.id] > 0 && (
+                            {unreadCounts[contact.jid] > 0 && (
                                 <div className="unread-count">
-                                    {unreadCounts[contact.id]}
+                                    {unreadCounts[contact.jid]}
                                 </div>
                             )}
                             <button className="info-btn" onClick={(e) => { e.stopPropagation(); openInfoModal(contact); }}>ℹ️</button>
                         </div>
                     );
                 })}
+            </div>
+            <div className="no-contact-list">
+                <NonContactsList 
+                    contacts={contacts} 
+                    onSelectContact={onSelectContact} 
+                />
             </div>
             <AddContactModal
                 isOpen={isAddModalOpen}

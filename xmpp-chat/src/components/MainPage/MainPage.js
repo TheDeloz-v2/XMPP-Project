@@ -9,7 +9,6 @@ import "./MainPage.scss";
 
 const MainPage = () => {
     const navigate = useNavigate();
-    const [contacts, setContacts] = useState([]);
     const [selectedContactId, setSelectedContactId] = useState(null);
     const [messages, setMessages] = useState({});
     const xmppClient = XmppClientSingleton.getClient();
@@ -21,49 +20,38 @@ const MainPage = () => {
             return;
         }
 
-        const startClientAndLoadContacts = async () => {
+        const startClient = async () => {
             try {
                 if (xmppClient.status === 'offline') {
                     await xmppClient.start();
                 }
                 await xmppClient.send(xml('presence')); // Enviar presencia
-                await loadContacts(); // Cargar contactos
             } catch (error) {
                 console.error("Error al iniciar el cliente XMPP o enviar presencia:", error);
             }
         };
 
-        startClientAndLoadContacts();
+        startClient();
     }, [xmppClient, navigate]);
 
-    const loadContacts = async () => {
-        try {
-            const contactList = await XmppClientSingleton.getContacts();
-            // Asignar un ID único a cada contacto
-            const contactsWithIds = contactList.map((contact, index) => ({
-                ...contact,
-                id: index + 1, // Asignar un ID basado en el índice, puedes cambiar la lógica si lo prefieres
-            }));
-            setContacts(contactsWithIds);
-        } catch (error) {
-            console.error('Error al cargar los contactos:', error);
-        }
-    };
-
-    const handleSelectContact = (contactId) => {
-        setSelectedContactId(contactId);
+    const handleSelectContact = (contactJid) => {
+        setSelectedContactId(contactJid);
         setMessages(prevMessages => ({
             ...prevMessages,
-            [contactId]: prevMessages[contactId] || [], // Asegura que haya un array de mensajes para este contacto
+            [contactJid]: prevMessages[contactJid] || [], // Asegura que haya un array de mensajes para este contacto
         }));
     };
 
-    const selectedContact = contacts.find(contact => contact.id === selectedContactId);
+    const selectedContact = selectedContactId 
+        ? {
+            jid: selectedContactId,
+            name: selectedContactId.split('@')[0], // Usa la parte del usuario del JID como nombre
+        } 
+        : null;
 
     return (
         <div className="main-container">
             <SidebarLeft 
-                contacts={contacts} 
                 xmppClient={xmppClient} 
                 onSelectContact={handleSelectContact} 
             />
@@ -80,4 +68,5 @@ const MainPage = () => {
 };
 
 export default MainPage;
+
 
