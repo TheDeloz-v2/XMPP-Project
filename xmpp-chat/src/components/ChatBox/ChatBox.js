@@ -77,6 +77,26 @@ const ChatBox = ({ selectedContact }) => {
         setReplyingTo(null);
     };
 
+    const handleSendFile = (base64File, fileName) => {
+        if (selectedContact) {
+            const fileMessage = `[Archivo enviado: ${fileName}]`;
+    
+            setMessages(prevMessages => {
+                const currentMessages = prevMessages[selectedContact.jid] || [];
+                return {
+                    ...prevMessages,
+                    [selectedContact.jid]: [
+                        ...currentMessages,
+                        { from: 'me', body: fileMessage, timestamp: new Date(), sent: true }
+                    ]
+                };
+            });
+    
+            // Enviar el archivo codificado en base64
+            XmppClientSingleton.sendMessage(selectedContact.jid, base64File);
+        }
+    };    
+
     const handleCancelReply = () => {
         setReplyingTo(null);
     };
@@ -100,6 +120,7 @@ const ChatBox = ({ selectedContact }) => {
                 onSendMessage={handleSendMessage} 
                 replyingTo={replyingTo} 
                 onCancelReply={handleCancelReply}
+                onSendFile={handleSendFile}
             />
         </div>
     );

@@ -30,10 +30,17 @@ const XmppClientSingleton = (() => {
     const handleIncomingMessage = (stanza) => {
         if (stanza.is('message') && stanza.attrs.type === 'chat') {
             const from = stanza.attrs.from.split('/')[0]; // Obtener solo el JID base
-            const body = stanza.getChildText('body');
+            let body = stanza.getChildText('body');
             const message = { from, body, timestamp: new Date() };
 
             console.log(`Mensaje recibido de ${from}: ${body}`);
+
+            // Verificar si el mensaje contiene un archivo en base64
+            if (body && body.startsWith('FILE_BASE64:')) {
+                const base64Content = body.replace('FILE_BASE64:', '');
+                const decodedContent = atob(base64Content);
+                message.body = `Archivo recibido:\n${decodedContent}`;
+            }
 
             // Verificar si el contacto ya existe
             if (!contacts.find(contact => contact.jid === from)) {
