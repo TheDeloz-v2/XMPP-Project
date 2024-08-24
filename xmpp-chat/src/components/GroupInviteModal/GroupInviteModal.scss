@@ -1,0 +1,38 @@
+.group-invite-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+
+    .modal-content {
+        text-align: center;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+
+        .join-btn, .decline-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .join-btn {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+
+        .decline-btn {
+            background-color: #f44336;
+            color: #fff;
+        }
+    }
+}

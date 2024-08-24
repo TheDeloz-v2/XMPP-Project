@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import XmppClientSingleton from "../../xmppClient";
 import AddContactModal from './AddContactModal/AddContactModal';
 import ContactInfoModal from './ContactInfoModal/ContactInfoModal';
-import NonContactsList from './NonContactsList/NonContactsList'; // Importa el nuevo componente
 import './SidebarLeft.scss';
 
-const SidebarLeft = ({ xmppClient, onSelectContact }) => {
+const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
     const [contacts, setContacts] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -71,6 +70,10 @@ const SidebarLeft = ({ xmppClient, onSelectContact }) => {
         return contact.name.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
+    const filteredGroups = groups.filter((group) => {
+        return group.jid.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
     return (
         <div className="sidebar-left">
             <div className="search-add-section">
@@ -83,6 +86,7 @@ const SidebarLeft = ({ xmppClient, onSelectContact }) => {
                 />
                 <button className="add-contact-btn" onClick={() => setIsAddModalOpen(true)}>+</button>
             </div>
+
             <div className="contact-list">
                 <h3>Contactos</h3>
                 {filteredContacts.map((contact) => {
@@ -112,11 +116,25 @@ const SidebarLeft = ({ xmppClient, onSelectContact }) => {
                     );
                 })}
             </div>
+
             <div className="no-contact-list">
-                <NonContactsList 
-                    contacts={contacts} 
-                    onSelectContact={onSelectContact} 
-                />
+                <h3>Grupos</h3>
+                {filteredGroups.map((group) => (
+                    <div
+                        key={group.jid}
+                        className="group-item"
+                        onClick={() => handleSelectContact(group.jid)} // Maneja la selección del grupo
+                    >
+                        <div className="group-info">
+                            <div className="name">{group.jid.split('@')[0]}</div>
+                        </div>
+                        {unreadCounts[group.jid] > 0 && (
+                            <div className="unread-count">
+                                {unreadCounts[group.jid]}
+                            </div>
+                        )}
+                    </div>
+                ))}
             </div>
             <AddContactModal
                 isOpen={isAddModalOpen}

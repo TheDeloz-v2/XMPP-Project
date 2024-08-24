@@ -26,23 +26,51 @@ const XmppClientSingleton = (() => {
     };
 
     let updateContactsHandler = null;
+    let inviteHandler = null;
 
     const handleIncomingMessage = (stanza) => {
-        if (stanza.is('message') && stanza.attrs.type === 'chat') {
-            const from = stanza.attrs.from.split('/')[0]; // Obtener solo el JID base
+
+        console.log(stanza);
+        if (stanza.is('message')) {
+            const type = stanza.attrs.type;
+            const from = stanza.attrs.from.split('/')[0];
             let body = stanza.getChildText('body');
             const message = { from, body, timestamp: new Date() };
+    
+            // Verificar si es una invitación a un Group Chat
+            const xElement = stanza.getChild('x', 'jabber:x:conference');
+            if (xElement) {
+                const groupJid = xElement.attrs.jid;
+                console.log(`Invitación recibida para unirse al grupo: ${groupJid} enviada por ${from}`);
+    
+                if (inviteHandler) {
+                    inviteHandler({ from, groupJid });
+                }
+                return; // Salir de la función para que no se procese como un mensaje regular
+            }
+    
+            // Procesamiento de mensajes normales o de grupo
+            if (type === 'groupchat') {
+                console.log(`Mensaje de grupo recibido de ${from}: ${body}`);
+                message.isGroupMessage = true;
 
-            console.log(`Mensaje recibido de ${from}: ${body}`);
-
+                // Evitar el procesamiento del propio mensaje en el cliente que lo envió
+                if (from !== stanza.attrs.from.split('/')[0]) {
+                    messageHandlers.forEach(handler => handler(message));
+                }
+            } else if (type === 'chat') {
+                console.log(`Mensaje individual recibido de ${from}: ${body}`);
+                messageHandlers.forEach(handler => handler(message));
+            }
+    
             // Verificar si el mensaje contiene un archivo en base64
             if (body && body.startsWith('FILE_BASE64:')) {
                 const base64Content = body.replace('FILE_BASE64:', '');
                 const decodedContent = atob(base64Content);
                 message.body = `Archivo recibido:\n${decodedContent}`;
             }
-
-            // Verificar si el contacto ya existe
+    
+            // Manejo de contactos
             if (!contacts.find(contact => contact.jid === from)) {
                 // Si no existe, agregar el contacto
                 contacts.push({
@@ -55,17 +83,15 @@ const XmppClientSingleton = (() => {
                     imageUrl: `https://api.adorable.io/avatars/40/${from}.png`,
                     isNotInContactList: true // Indicador de que no está en la lista de contactos
                 });
-
+    
                 // Actualizar la lista de contactos
                 if (updateContactsHandler) {
                     updateContactsHandler([...contacts]);
                 }
             }
-
-            // Llamar a todos los handlers registrados
-            messageHandlers.forEach(handler => handler(message));
+    
         }
-    };
+    };    
 
     const onUpdateContacts = (handler) => {
         updateContactsHandler = handler;
@@ -165,6 +191,10 @@ const XmppClientSingleton = (() => {
             }
         });
     };    
+
+    const onGroupInvite = (handler) => {
+        inviteHandler = handler;
+    };
 
     const addContact = (jid, message, shareStatus) => {
         return new Promise((resolve, reject) => {
@@ -299,6 +329,55 @@ const XmppClientSingleton = (() => {
         }
     };    
 
+    const sendGroupMessage = (roomJid, message) => {
+        const messageStanza = xml(
+            'message',
+            { to: roomJid, type: 'groupchat' },
+            xml('body', {}, message)
+        );
+
+        xmppClient.send(messageStanza).then(() => {
+            console.log(`Mensaje enviado a la sala ${roomJid}: ${message}`);
+        }).catch(err => {
+            console.error('Error al enviar el mensaje al grupo:', err);
+        });
+    };
+
+    const joinGroup = (roomJid, nickname) => {
+        const presence = xml(
+            'presence',
+            { to: `${roomJid}/${nickname}` },
+            xml('x', { xmlns: 'http://jabber.org/protocol/muc' })
+        );
+
+        xmppClient.send(presence).then(() => {
+            console.log(`Unido a la sala: ${roomJid} con el apodo: ${nickname}`);
+        }).catch(err => {
+            console.error('Error al unirse a la sala:', err);
+        });
+    };
+
+    const getJoinedGroups = () => {
+        return new Promise((resolve, reject) => {
+            const discoItemsIq = xml(
+                'iq',
+                { from: xmppClient.jid, type: 'get', id: 'disco1', to: xmppClient.jid.domain },
+                xml('query', { xmlns: 'http://jabber.org/protocol/disco#items' })
+            );
+    
+            xmppClient.send(discoItemsIq).then(response => {
+                const items = response.getChild('query', 'http://jabber.org/protocol/disco#items').getChildren('item');
+                const groups = items
+                    .filter(item => item.attrs.jid.includes('conference')) // Filtrar solo los elementos que son grupos
+                    .map(item => ({ jid: item.attrs.jid, name: item.attrs.name }));
+                resolve(groups);
+            }).catch(err => {
+                console.error('Error al obtener los grupos:', err);
+                reject(err);
+            });
+        });
+    };    
+
     return {
         createClient,
         getClient,
@@ -313,6 +392,10 @@ const XmppClientSingleton = (() => {
         sendPresence,
         onPresenceChange,
         onToggleStatusSharing,
+        sendGroupMessage,
+        joinGroup,
+        onGroupInvite,
+        getJoinedGroups,
         deleteAccount,
         onUpdateContacts,
     };

@@ -5,12 +5,15 @@ import XmppClientSingleton from "../../xmppClient";
 import SidebarLeft from "../SidebarLeft/SidebarLeft";
 import SidebarRight from "../SidebarRight/SidebarRight";
 import ChatBox from "../ChatBox/ChatBox";
+import GroupInviteModal from "../GroupInviteModal/GroupInviteModal";
 import "./MainPage.scss";
 
 const MainPage = () => {
     const navigate = useNavigate();
     const [selectedContactId, setSelectedContactId] = useState(null);
     const [messages, setMessages] = useState({});
+    const [groupInvite, setGroupInvite] = useState(null);
+    const [groups, setGroups] = useState([]);
     const xmppClient = XmppClientSingleton.getClient();
 
     useEffect(() => {
@@ -25,27 +28,56 @@ const MainPage = () => {
                 if (xmppClient.status === 'offline') {
                     await xmppClient.start();
                 }
-                await xmppClient.send(xml('presence')); // Enviar presencia
+                await xmppClient.send(xml('presence'));
             } catch (error) {
                 console.error("Error al iniciar el cliente XMPP o enviar presencia:", error);
             }
         };
 
         startClient();
+
+        XmppClientSingleton.onGroupInvite(({ from, groupJid }) => {
+            setGroupInvite({ from, groupJid });
+        });
+
+        XmppClientSingleton.onMessage((message) => {
+            if (message.isGroupMessage) {
+                setMessages(prevMessages => ({
+                    ...prevMessages,
+                    [message.from]: [...(prevMessages[message.from] || []), message]
+                }));
+            } else {
+                setMessages(prevMessages => ({
+                    ...prevMessages,
+                    [message.from]: [...(prevMessages[message.from] || []), message],
+                }));
+            }
+        });
+
     }, [xmppClient, navigate]);
 
     const handleSelectContact = (contactJid) => {
         setSelectedContactId(contactJid);
         setMessages(prevMessages => ({
             ...prevMessages,
-            [contactJid]: prevMessages[contactJid] || [], // Asegura que haya un array de mensajes para este contacto
+            [contactJid]: prevMessages[contactJid] || [],
         }));
+    };
+
+    const handleJoinGroup = (groupJid) => {
+        XmppClientSingleton.joinGroup(groupJid, XmppClientSingleton.getClient().username);
+        setGroups(prevGroups => [...prevGroups, { jid: groupJid, messages: [] }]);
+        setGroupInvite(null);
+    };
+
+    const handleDeclineGroup = () => {
+        setGroupInvite(null);
     };
 
     const selectedContact = selectedContactId 
         ? {
             jid: selectedContactId,
-            name: selectedContactId.split('@')[0], // Usa la parte del usuario del JID como nombre
+            name: selectedContactId.split('@')[0], 
         } 
         : null;
 
@@ -54,15 +86,24 @@ const MainPage = () => {
             <SidebarLeft 
                 xmppClient={xmppClient} 
                 onSelectContact={handleSelectContact} 
+                groups={groups}
             />
             <ChatBox 
                 selectedContact={selectedContact} 
-                messages={messages} 
+                messages={messages[selectedContactId] || []} 
             />
             <SidebarRight
                 xmppClient={xmppClient}
                 selectedContactId={selectedContactId}
             />
+            {groupInvite && (
+                <GroupInviteModal
+                    groupJid={groupInvite.groupJid}
+                    inviter={groupInvite.from}
+                    onJoin={handleJoinGroup}
+                    onDecline={handleDeclineGroup}
+                />
+            )}
         </div>
     );
 };
