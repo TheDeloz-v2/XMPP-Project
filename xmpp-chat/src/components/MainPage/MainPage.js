@@ -6,6 +6,7 @@ import SidebarLeft from "../SidebarLeft/SidebarLeft";
 import SidebarRight from "../SidebarRight/SidebarRight";
 import ChatBox from "../ChatBox/ChatBox";
 import GroupInviteModal from "../GroupInviteModal/GroupInviteModal";
+import PresenceRequestModal from "../PresenceRequestModal/PresenceRequestModal";
 import "./MainPage.scss";
 
 const MainPage = () => {
@@ -13,6 +14,7 @@ const MainPage = () => {
     const [selectedContactId, setSelectedContactId] = useState(null);
     const [messages, setMessages] = useState({});
     const [groupInvite, setGroupInvite] = useState(null);
+    const [presenceRequest, setPresenceRequest] = useState(null);
     const [groups, setGroups] = useState([]);
     const xmppClient = XmppClientSingleton.getClient();
 
@@ -38,6 +40,10 @@ const MainPage = () => {
 
         XmppClientSingleton.onGroupInvite(({ from, groupJid }) => {
             setGroupInvite({ from, groupJid });
+        });
+
+        XmppClientSingleton.onPresenceRequest(({ from }) => {
+            setPresenceRequest(from);
         });
 
         XmppClientSingleton.onMessage((message) => {
@@ -73,6 +79,16 @@ const MainPage = () => {
         setGroupInvite(null);
     };
 
+    const handleAcceptPresenceRequest = (requester) => {
+        XmppClientSingleton.acceptPresenceRequest(requester);
+        setPresenceRequest(null);
+    };
+
+    const handleDeclinePresenceRequest = (requester) => {
+        XmppClientSingleton.declinePresenceRequest(requester);
+        setPresenceRequest(null);
+    };
+
     const selectedContact = selectedContactId 
         ? {
             jid: selectedContactId,
@@ -101,6 +117,13 @@ const MainPage = () => {
                     inviter={groupInvite.from}
                     onJoin={handleJoinGroup}
                     onDecline={handleDeclineGroup}
+                />
+            )}
+            {presenceRequest && (
+                <PresenceRequestModal
+                    requester={presenceRequest}
+                    onAccept={handleAcceptPresenceRequest}
+                    onDecline={handleDeclinePresenceRequest}
                 />
             )}
         </div>

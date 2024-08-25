@@ -27,6 +27,7 @@ const XmppClientSingleton = (() => {
 
     let updateContactsHandler = null;
     let inviteHandler = null;
+    let presenceRequestHandler = null;
 
     const handleIncomingMessage = (stanza) => {
 
@@ -91,6 +92,14 @@ const XmppClientSingleton = (() => {
                 }
             }
     
+        }
+        if (stanza.is('presence') && stanza.attrs.type === 'subscribe') {
+            const from = stanza.attrs.from;
+            console.log(`Solicitud de presencia recibida de ${from}`);
+            
+            if (presenceRequestHandler) {
+                presenceRequestHandler({ from });
+            }
         }
     };    
 
@@ -377,7 +386,37 @@ const XmppClientSingleton = (() => {
                 reject(err);
             });
         });
-    };    
+    };
+
+    const onPresenceRequest = (handler) => {
+        presenceRequestHandler = handler;
+    };
+    
+    const acceptPresenceRequest = (requester) => {
+        const presenceStanza = xml(
+            'presence',
+            { to: requester, type: 'subscribed' }
+        );
+    
+        xmppClient.send(presenceStanza).then(() => {
+            console.log(`Solicitud de presencia aceptada para ${requester}`);
+        }).catch(err => {
+            console.error('Error al aceptar la solicitud de presencia:', err);
+        });
+    };
+    
+    const declinePresenceRequest = (requester) => {
+        const presenceStanza = xml(
+            'presence',
+            { to: requester, type: 'unsubscribed' }
+        );
+    
+        xmppClient.send(presenceStanza).then(() => {
+            console.log(`Solicitud de presencia rechazada para ${requester}`);
+        }).catch(err => {
+            console.error('Error al rechazar la solicitud de presencia:', err);
+        });
+    };
 
     return {
         createClient,
@@ -399,6 +438,9 @@ const XmppClientSingleton = (() => {
         getJoinedGroups,
         deleteAccount,
         onUpdateContacts,
+        onPresenceRequest,
+        acceptPresenceRequest,
+        declinePresenceRequest,
     };
 })();
 
