@@ -41,17 +41,16 @@ const MainPage = () => {
         });
 
         XmppClientSingleton.onMessage((message) => {
-            if (message.isGroupMessage) {
-                setMessages(prevMessages => ({
+            console.log("Mensaje recibido:", message);
+
+            setMessages(prevMessages => {
+                const updatedMessages = {
                     ...prevMessages,
                     [message.from]: [...(prevMessages[message.from] || []), message]
-                }));
-            } else {
-                setMessages(prevMessages => ({
-                    ...prevMessages,
-                    [message.from]: [...(prevMessages[message.from] || []), message],
-                }));
-            }
+                };
+                console.log("Mensajes actualizados:", updatedMessages);
+                return updatedMessages;
+            });
         });
 
     }, [xmppClient, navigate]);
@@ -62,7 +61,7 @@ const MainPage = () => {
             ...prevMessages,
             [contactJid]: prevMessages[contactJid] || [],
         }));
-    };
+    };    
 
     const handleJoinGroup = (groupJid) => {
         XmppClientSingleton.joinGroup(groupJid, XmppClientSingleton.getClient().username);

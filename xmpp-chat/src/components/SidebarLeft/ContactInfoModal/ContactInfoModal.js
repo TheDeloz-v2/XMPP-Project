@@ -28,6 +28,7 @@ const ContactInfoModal = ({ isOpen, contact, onClose, onDeleteContact, onToggleS
                 <p><strong>JID:</strong> {contact.jid}</p>
                 <p><strong>Nombre:</strong> {contact.name}</p>
                 <p><strong>Estado:</strong> {contact.state}</p>
+                {/*}
                 <p>
                     <strong>¿Comparto mi estado?:</strong> 
                     <input 
@@ -44,6 +45,7 @@ const ContactInfoModal = ({ isOpen, contact, onClose, onDeleteContact, onToggleS
                         disabled
                     />
                 </p>
+                {*/}
                 <div className="modal-buttons">
                     <button onClick={handleDelete}>Eliminar Contacto</button>
                     <button onClick={onClose}>Cerrar</button>

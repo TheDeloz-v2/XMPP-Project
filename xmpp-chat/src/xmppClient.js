@@ -53,6 +53,7 @@ const XmppClientSingleton = (() => {
             if (type === 'groupchat') {
                 console.log(`Mensaje de grupo recibido de ${from}: ${body}`);
                 message.isGroupMessage = true;
+                messageHandlers.forEach(handler => handler(message));
 
                 // Evitar el procesamiento del propio mensaje en el cliente que lo envió
                 if (from !== stanza.attrs.from.split('/')[0]) {

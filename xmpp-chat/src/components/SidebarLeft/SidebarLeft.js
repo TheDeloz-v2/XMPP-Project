@@ -26,12 +26,15 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
         });
 
         const handleIncomingMessage = (message) => {
-            const contactJid = message.from.split('/')[0];
 
-            setUnreadCounts(prevCounts => ({
-                ...prevCounts,
-                [contactJid]: (prevCounts[contactJid] || 0) + 1
-            }));
+                if (message) {
+                    const contactJid = message.from.split('/')[0];
+
+                    setUnreadCounts(prevCounts => ({
+                        ...prevCounts,
+                        [contactJid]: (prevCounts[contactJid] || 0) + 1
+                    }));
+                }
         };
 
         XmppClientSingleton.onMessage(handleIncomingMessage);
@@ -122,17 +125,13 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
                 {filteredGroups.map((group) => (
                     <div
                         key={group.jid}
-                        className="group-item"
+                        className="contact-item"
                         onClick={() => handleSelectContact(group.jid)} // Maneja la selección del grupo
                     >
-                        <div className="group-info">
+                        <div className="contact-info">
                             <div className="name">{group.jid.split('@')[0]}</div>
                         </div>
-                        {unreadCounts[group.jid] > 0 && (
-                            <div className="unread-count">
-                                {unreadCounts[group.jid]}
-                            </div>
-                        )}
+                       
                     </div>
                 ))}
             </div>
