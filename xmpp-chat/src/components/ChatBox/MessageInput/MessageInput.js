@@ -68,11 +68,10 @@ const MessageInput = ({ onSendMessage, replyingTo, onCancelReply, onSendFile }) 
                     style={{ display: "none" }}
                     id="file-input"
                 />
-                <label htmlFor="file-input" className="attach-btn">📎</label>
+                <label htmlFor="file-input" className="file-input">📎</label>
                 {selectedFile && (
                     <button onClick={handleSendFile} className="send-file-btn">Enviar {selectedFile.name}</button>
                 )}
-                <button className="emoji-btn">😊</button>
             </div>
         </div>
     );

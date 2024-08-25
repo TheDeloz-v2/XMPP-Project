@@ -37,7 +37,6 @@
         border: none;
         background-color: #4a4a4a;
         color: #fff;
-        margin-right: 10px;
     }
 
     button {
@@ -46,15 +45,23 @@
         color: #fff;
         font-size: 20px;
         cursor: pointer;
-        margin-left: 5px;
+    }
 
-        &.attach-btn {
-            font-size: 24px;
-        }
+    .send-file-btn {
+        background: #8a8f90;
+        border: none;
+        color: #fff;
+        font-size: 10px;
+        cursor: pointer;
+    }
 
-        &.emoji-btn {
-            font-size: 24px;
-        }
+    .file-input {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        margin-right: 10px;
     }
 }
 

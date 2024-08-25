@@ -418,6 +418,20 @@ const XmppClientSingleton = (() => {
         });
     };
 
+    const leaveGroup = (roomJid) => {
+        const presenceStanza = xml(
+            'presence',
+            { to: roomJid, type: 'unavailable' }
+        );
+    
+        xmppClient.send(presenceStanza).then(() => {
+            console.log(`Saliste del grupo: ${roomJid}`);
+        }).catch(err => {
+            console.error('Error al salir del grupo:', err);
+        });
+    };
+    
+
     return {
         createClient,
         getClient,
@@ -441,6 +455,7 @@ const XmppClientSingleton = (() => {
         onPresenceRequest,
         acceptPresenceRequest,
         declinePresenceRequest,
+        leaveGroup,
     };
 })();
 

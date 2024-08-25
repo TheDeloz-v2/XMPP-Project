@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import XmppClientSingleton from "../../xmppClient";
 import AddContactModal from './AddContactModal/AddContactModal';
 import ContactInfoModal from './ContactInfoModal/ContactInfoModal';
+import GroupInfoModal from './GroupInfoModal/GroupInfoModal';
 import './SidebarLeft.scss';
 
-const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
+const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
     const [contacts, setContacts] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
+    const [selectedGroup, setSelectedGroup] = useState(null);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [contactStates, setContactStates] = useState({});
     const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +67,17 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
         setIsInfoModalOpen(true);
     };
 
+    const openGroupInfoModal = (group) => {
+        setSelectedGroup(group);
+        setIsInfoModalOpen(true);
+    };
+
+    const handleLeaveGroup = (groupJid) => {
+        XmppClientSingleton.leaveGroup(groupJid);
+        setGroups(prevGroups => prevGroups.filter(group => group.jid !== groupJid));
+        setSelectedGroup(null);
+    };
+
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
     };
@@ -106,7 +119,13 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
                             </div>
                             <div className="contact-info">
                                 <div className="name">{contact.name}</div>
-                                <div className="status">{contactState.status || 'offline'}</div>
+                                <div className="status">
+                                    {contactState.status === 'dnd' && 'Ocupado'}
+                                    {contactState.status === 'away' && 'Ausente'}
+                                    {contactState.status === 'available' && 'En línea'}
+                                    {contactState.status === 'xa' && 'No disponible'}
+                                    {!contactState.status && 'Desconectado'}
+                                </div>
                                 <div className="status-message">{contactState.statusMessage || ''}</div>
                             </div>
                             {unreadCounts[contact.jid] > 0 && (
@@ -130,8 +149,8 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
                     >
                         <div className="contact-info">
                             <div className="name">{group.jid.split('@')[0]}</div>
-                        </div>
-                       
+                        </div>                        
+                        <button className="info-btn" onClick={(e) => { e.stopPropagation(); openGroupInfoModal(group); }}>ℹ️</button>
                     </div>
                 ))}
             </div>
@@ -146,6 +165,14 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups }) => {
                 onClose={() => setIsInfoModalOpen(false)}
                 onDeleteContact={(jid) => XmppClientSingleton.deleteContact(jid)}
             />
+            {selectedGroup && (
+                <GroupInfoModal
+                    isOpen={isInfoModalOpen}
+                    group={selectedGroup}
+                    onClose={() => setIsInfoModalOpen(false)}
+                    onLeaveGroup={handleLeaveGroup}
+                />
+            )}
         </div>
     );
 };

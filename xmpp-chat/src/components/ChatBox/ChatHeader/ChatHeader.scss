@@ -43,11 +43,11 @@
 
             &.dnd .status-indicator {
                 background-color: #ff0000; /* Rojo */
+                border: 2px solid white; /* Línea horizontal blanca */
             }
 
             &.xa .status-indicator {
                 background-color: #ff0000; /* Rojo */
-                border: 2px solid white; /* Línea horizontal blanca */
             }
 
             &.offline .status-indicator {

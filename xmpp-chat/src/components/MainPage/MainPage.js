@@ -102,6 +102,7 @@ const MainPage = () => {
                 xmppClient={xmppClient} 
                 onSelectContact={handleSelectContact} 
                 groups={groups}
+                setGroups={setGroups}
             />
             <ChatBox 
                 selectedContact={selectedContact} 
