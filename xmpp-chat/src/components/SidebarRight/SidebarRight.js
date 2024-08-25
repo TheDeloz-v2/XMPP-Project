@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import XmppClientSingleton from "../../xmppClient";
 import './SidebarRight.scss';
 
+/**
+ * SidebarRight component.
+ *
+ * @param {Object} props - The component props.
+ * @param {Object} props.xmppClient - The XMPP client object.
+ * @param {string} props.selectedContactId - The ID of the selected contact.
+ * @returns {JSX.Element} The SidebarRight component.
+ */
 const SidebarRight = ({ xmppClient, selectedContactId }) => {
     const navigate = useNavigate();
     const [presenceStatus, setPresenceStatus] = useState("available");
@@ -25,7 +33,7 @@ const SidebarRight = ({ xmppClient, selectedContactId }) => {
         return () => {
             XmppClientSingleton.removeMessageHandler(handleIncomingMessage);
         };
-    }, [selectedContactId]); // Asegúrate de que el efecto se ejecute cada vez que selectedContactId cambie
+    }, [selectedContactId]);
 
     const handleLogOut = async (e) => {
         e.preventDefault();

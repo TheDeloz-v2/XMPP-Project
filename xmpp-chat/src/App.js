@@ -6,7 +6,7 @@ import MainPage from "./components/MainPage/MainPage";
 function App() {
   const [xmppClient, setXmppClient] = useState(null);
 
-  // La función setXmppClient simplemente guarda la instancia del cliente XMPP en el estado
+  // The setXmppClient function simply saves the XMPP client instance in the state
   const handleSetXmppClient = (xmpp) => {
     setXmppClient(xmpp);
   };

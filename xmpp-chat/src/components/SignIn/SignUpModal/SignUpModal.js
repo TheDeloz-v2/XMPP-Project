@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import './SignUpModal.scss';
 
+/**
+ * SignUpModal component.
+ *
+ * @component
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Determines if the modal is open or not.
+ * @param {Function} props.onClose - The function to close the modal.
+ * @param {Function} props.onSignUp - The function to handle the sign up process.
+ * @returns {JSX.Element|null} The SignUpModal component.
+ */
 const SignUpModal = ({ isOpen, onClose, onSignUp }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");

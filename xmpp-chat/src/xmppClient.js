@@ -1,5 +1,39 @@
 import { client, xml } from "@xmpp/client";
 
+/**
+ * XmppClientSingleton is a singleton object that provides functionality for managing an XMPP client.
+ * It allows creating a client, sending and receiving messages, managing contacts, and handling presence changes.
+ * The singleton pattern ensures that only one instance of XmppClientSingleton is created throughout the application.
+ *
+ * @typedef {Object} XmppClientSingleton
+ * @property {function} createClient - Creates an XMPP client with the provided username and password.
+ * @property {function} onUpdateContacts - Registers a handler for updating the contacts list.
+ * @property {function} sendMessage - Sends a message to the specified recipient.
+ * @property {function} onMessage - Registers a handler for incoming messages.
+ * @property {function} removeMessageHandler - Removes a handler for incoming messages.
+ * @property {function} getClient - Retrieves the XMPP client instance.
+ * @property {function} clearClient - Clears the XMPP client instance and removes stored credentials.
+ * @property {function} getContacts - Retrieves the list of contacts.
+ * @property {function} onPresenceChange - Registers a handler for presence changes.
+ * @property {function} onGroupInvite - Registers a handler for group chat invitations.
+ * @property {function} addContact - Sends a subscription request to add a new contact.
+ * @property {function} deleteContact - Removes a contact from the roster.
+ * @property {function} registerAccount - Registers a new XMPP account with the provided credentials.
+ * @property {function} sendPresence - Sends a presence stanza with the specified status and message.
+ * @property {function} onToggleStatusSharing - Toggles the sharing of status information with a contact.
+ * @property {function} sendGroupMessage - Sends a message to a group chat.
+ * @property {function} joinGroup - Joins a group chat with the specified nickname.
+ * @property {function} getJoinedGroups - Retrieves the list of joined group chats.
+ * @property {function} deleteAccount - Deletes the XMPP account from the server.
+ * @property {function} onPresenceRequest - Registers a handler for presence subscription requests.
+ * @property {function} acceptPresenceRequest - Accepts a presence subscription request.
+ * @property {function} declinePresenceRequest - Declines a presence subscription request.
+ * @property {function} leaveGroup - Leaves a group chat.
+ * @property {function} createGroup - Creates a new group chat with the specified settings.
+ * @property {function} inviteToGroup - Invites a user to join a group chat.
+ * 
+ */
+
 const XmppClientSingleton = (() => {
     let xmppClient = null;
     let messageHandlers = [];
@@ -16,15 +50,16 @@ const XmppClientSingleton = (() => {
 
         xmppClient.username = username;
 
-        // Guardar las credenciales en localStorage
+        // Save the credentials in localStorage
         localStorage.setItem('xmppClientCredentials', JSON.stringify({ username, password }));
 
-        // Configurar el evento para manejar mensajes entrantes
+        // Configure the event to handle incoming messages
         xmppClient.on('stanza', handleIncomingMessage);
 
         return xmppClient;
     };
 
+    // Handlers for updating contacts, group chat invitations, and presence requests
     let updateContactsHandler = null;
     let inviteHandler = null;
     let presenceRequestHandler = null;
@@ -38,7 +73,7 @@ const XmppClientSingleton = (() => {
             let body = stanza.getChildText('body');
             const message = { from, body, timestamp: new Date() };
     
-            // Verificar si es una invitación a un Group Chat
+            // Check if it is a Group Chat invitation
             const xElement = stanza.getChild('x', 'jabber:x:conference');
             if (xElement) {
                 const groupJid = xElement.attrs.jid;
@@ -47,16 +82,16 @@ const XmppClientSingleton = (() => {
                 if (inviteHandler) {
                     inviteHandler({ from, groupJid });
                 }
-                return; // Salir de la función para que no se procese como un mensaje regular
+                return;
             }
     
-            // Procesamiento de mensajes normales o de grupo
+            // Check if it is a Group Chat message
             if (type === 'groupchat') {
                 console.log(`Mensaje de grupo recibido de ${from}: ${body}`);
                 message.isGroupMessage = true;
                 messageHandlers.forEach(handler => handler(message));
 
-                // Evitar el procesamiento del propio mensaje en el cliente que lo envió
+                // Ignore group messages from the current user
                 if (from !== stanza.attrs.from.split('/')[0]) {
                     messageHandlers.forEach(handler => handler(message));
                 }
@@ -65,34 +100,36 @@ const XmppClientSingleton = (() => {
                 messageHandlers.forEach(handler => handler(message));
             }
     
-            // Verificar si el mensaje contiene un archivo en base64
+            // Check if it is a file message
             if (body && body.startsWith('FILE_BASE64:')) {
                 const base64Content = body.replace('FILE_BASE64:', '');
                 const decodedContent = atob(base64Content);
                 message.body = `Archivo recibido:\n${decodedContent}`;
             }
     
-            // Manejo de contactos
+            // Update the contacts list if the sender is not in the roster
             if (!contacts.find(contact => contact.jid === from)) {
-                // Si no existe, agregar el contacto
+                
+                // Add the new contact to the list
                 contacts.push({
                     jid: from,
-                    name: from.split('@')[0], // Usar la parte del usuario del JID como nombre
-                    state: 'offline', // Estado por defecto, se actualizará con los mensajes de presencia
+                    name: from.split('@')[0],
+                    state: 'offline', // Default state, will be updated with presence messages
                     isSharingMyStatus: false,
                     isSharingTheirStatus: false,
                     statusMessage: '',
                     imageUrl: `https://api.adorable.io/avatars/40/${from}.png`,
-                    isNotInContactList: true // Indicador de que no está en la lista de contactos
+                    isNotInContactList: true // Flag to indicate that the contact is not in the roster
                 });
     
-                // Actualizar la lista de contactos
+                // Update the contacts list
                 if (updateContactsHandler) {
                     updateContactsHandler([...contacts]);
                 }
             }
     
         }
+        // Handle presence subscription requests
         if (stanza.is('presence') && stanza.attrs.type === 'subscribe') {
             const from = stanza.attrs.from;
             console.log(`Solicitud de presencia recibida de ${from}`);
@@ -108,6 +145,7 @@ const XmppClientSingleton = (() => {
     };
 
     const sendMessage = (to, body) => {
+        // Create a message stanza and send it to the recipient
         const messageStanza = xml(
             'message',
             { to, type: 'chat' },
@@ -122,17 +160,18 @@ const XmppClientSingleton = (() => {
     };
 
     const onMessage = (handler) => {
-        // Registrar un nuevo handler para los mensajes
+        // Register a message handler
         messageHandlers.push(handler);
     };
 
     const removeMessageHandler = (handler) => {
-        // Eliminar un handler de mensajes
+        // Remove a message handler
         messageHandlers = messageHandlers.filter(h => h !== handler);
     };
 
     const getClient = () => {
         if (!xmppClient) {
+            // Try to create a client using stored credentials
             const storedCredentials = localStorage.getItem('xmppClientCredentials');
             if (storedCredentials) {
                 const { username, password } = JSON.parse(storedCredentials);
@@ -148,6 +187,7 @@ const XmppClientSingleton = (() => {
     };
 
     const getContacts = () => {
+        // Retrieve the roster from the server and update the contacts list
         return new Promise((resolve, reject) => {
             const rosterIq = xml(
                 'iq',
@@ -161,10 +201,10 @@ const XmppClientSingleton = (() => {
                     contacts = items.map(item => ({
                         jid: item.attrs.jid,
                         name: item.attrs.name || item.attrs.jid.split('@')[0],
-                        state: 'offline', // Estado por defecto, se actualizará con los mensajes de presencia
+                        state: 'offline', // Default state, will be updated with presence messages
                         isSharingMyStatus: false,
                         isSharingTheirStatus: false,
-                        statusMessage: '', // Mensaje de estado por defecto
+                        statusMessage: '', // Default status message
                         imageUrl: `https://api.adorable.io/avatars/40/${item.attrs.jid}.png`
                     }));
                     xmppClient.removeListener('stanza', handleRosterResponse);
@@ -185,12 +225,14 @@ const XmppClientSingleton = (() => {
     const onPresenceChange = (callback) => {
         if (!xmppClient) return;
     
+        // Handle incoming presence stanzas
         xmppClient.on('stanza', (stanza) => {
             if (stanza.is('presence')) {
-                const from = stanza.attrs.from.split('/')[0]; // Obtener solo el JID base
+                const from = stanza.attrs.from.split('/')[0];
                 const status = stanza.getChildText('show') || 'available';
                 const message = stanza.getChildText('status') || '';
                 
+                // Update the contact's status and status message
                 contacts = contacts.map(contact => 
                     contact.jid === from 
                     ? { ...contact, state: status, statusMessage: message, isSharingTheirStatus: true }
@@ -208,6 +250,7 @@ const XmppClientSingleton = (() => {
 
     const addContact = (jid, message, shareStatus) => {
         return new Promise((resolve, reject) => {
+            // Send a subscription request to add the contact
             const subscribeIq = xml(
                 'presence',
                 { to: jid, type: 'subscribe' },
@@ -234,6 +277,7 @@ const XmppClientSingleton = (() => {
 
     const deleteContact = (jid) => {
         return new Promise((resolve, reject) => {
+            // Send an unsubscribe request to remove the contact
             const unsubscribeIq = xml(
                 'iq',
                 { type: 'set', id: 'unsub1' },
@@ -253,9 +297,10 @@ const XmppClientSingleton = (() => {
         });
     };
     
+    // Register a new account with the provided credentials. The server only allows registration from an existing account.
     const registerAccount = async (newUsername, newPassword, email = "", fullName = "") => {
         try {
-            // Conectarse con la cuenta root
+            // Create a new client with the root account to register the new account
             const rootClient = client({
                 service: "ws://alumchat.lol:7070/ws/",
                 domain: "alumchat.lol",
@@ -269,7 +314,7 @@ const XmppClientSingleton = (() => {
 
             await rootClient.start();
 
-            // Enviar solicitud de registro para la nueva cuenta
+            // Send the registration IQ to create the new account
             const registrationIQ = xml(
                 'iq',
                 { type: 'set', id: 'reg1' },
@@ -284,7 +329,8 @@ const XmppClientSingleton = (() => {
             const result = await rootClient.send(registrationIQ);
             console.log('Resultado del registro:', result);
 
-            await rootClient.stop(); // Desconectarse de la cuenta root
+            // Stop the root client after registration
+            await rootClient.stop();
 
             return result;
         } catch (error) {
@@ -296,6 +342,7 @@ const XmppClientSingleton = (() => {
     const sendPresence = (status, message = "") => {
         if (!xmppClient) return;
 
+        // Create a presence stanza with the specified status and message
         const presence = xml(
             'presence',
             {},
@@ -307,6 +354,7 @@ const XmppClientSingleton = (() => {
     };
 
     const onToggleStatusSharing = (jid, type) => {
+        // Toggle the sharing of status information with the contact
         contacts = contacts.map(contact =>
             contact.jid === jid 
             ? { ...contact, [type === 'myStatus' ? 'isSharingMyStatus' : 'isSharingTheirStatus']: !contact[type === 'myStatus' ? 'isSharingMyStatus' : 'isSharingTheirStatus'] } 
@@ -324,6 +372,7 @@ const XmppClientSingleton = (() => {
 
     const deleteAccount = async () => {
         try {
+            // Send an IQ to delete the account from the server
             const iq = xml(
                 'iq',
                 { type: 'set', id: 'delete1' },
@@ -340,6 +389,7 @@ const XmppClientSingleton = (() => {
     };    
 
     const sendGroupMessage = (roomJid, message) => {
+        // Create a message stanza and send it to the group chat
         const messageStanza = xml(
             'message',
             { to: roomJid, type: 'groupchat' },
@@ -354,6 +404,7 @@ const XmppClientSingleton = (() => {
     };
 
     const joinGroup = (roomJid, nickname) => {
+        // Send a presence stanza to join the group chat with the specified nickname
         const presence = xml(
             'presence',
             { to: `${roomJid}/${nickname}` },
@@ -369,6 +420,7 @@ const XmppClientSingleton = (() => {
 
     const getJoinedGroups = () => {
         return new Promise((resolve, reject) => {
+            // Send a disco#items IQ to get the list of joined group chats
             const discoItemsIq = xml(
                 'iq',
                 { from: xmppClient.jid, type: 'get', id: 'disco1', to: xmppClient.jid.domain },
@@ -378,7 +430,7 @@ const XmppClientSingleton = (() => {
             xmppClient.send(discoItemsIq).then(response => {
                 const items = response.getChild('query', 'http://jabber.org/protocol/disco#items').getChildren('item');
                 const groups = items
-                    .filter(item => item.attrs.jid.includes('conference')) // Filtrar solo los elementos que son grupos
+                    .filter(item => item.attrs.jid.includes('conference')) // Filter by conference JIDs
                     .map(item => ({ jid: item.attrs.jid, name: item.attrs.name }));
                 resolve(groups);
             }).catch(err => {
@@ -393,6 +445,7 @@ const XmppClientSingleton = (() => {
     };
     
     const acceptPresenceRequest = (requester) => {
+        // Send a presence stanza to accept the subscription request
         const presenceStanza = xml(
             'presence',
             { to: requester, type: 'subscribed' }
@@ -406,6 +459,7 @@ const XmppClientSingleton = (() => {
     };
     
     const declinePresenceRequest = (requester) => {
+        // Send a presence stanza to decline the subscription request
         const presenceStanza = xml(
             'presence',
             { to: requester, type: 'unsubscribed' }
@@ -419,6 +473,7 @@ const XmppClientSingleton = (() => {
     };
 
     const leaveGroup = (roomJid) => {
+        // Send an unavailable presence stanza to leave the group chat
         const presenceStanza = xml(
             'presence',
             { to: roomJid, type: 'unavailable' }
@@ -435,7 +490,7 @@ const XmppClientSingleton = (() => {
         try {
             const roomJid = address;
     
-            // Enviar presencia inicial para crear la sala
+            // Send a presence stanza to create the group chat
             const presence = xml(
                 'presence',
                 { to: `${roomJid}/${xmppClient.username}` },
@@ -445,7 +500,7 @@ const XmppClientSingleton = (() => {
             await xmppClient.send(presence);
             console.log(`Grupo creado con JID: ${roomJid}`);
     
-            // Configurar la sala (nombre, descripción, privacidad)
+            // Configure the group chat settings
             const iq = xml(
                 'iq',
                 { to: roomJid, type: 'set' },
@@ -484,6 +539,7 @@ const XmppClientSingleton = (() => {
     };    
     
     const inviteToGroup = async (groupJid, inviteeJid, reason = '') => {
+        // Send an invitation message to the invitee to join the group chat
         try {
             const messageStanza = xml(
                 'message',

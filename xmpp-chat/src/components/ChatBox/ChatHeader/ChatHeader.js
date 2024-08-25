@@ -1,6 +1,16 @@
 import React from 'react';
 import './ChatHeader.scss';
 
+/**
+ * Renders the header of the chat box component.
+ * 
+ * @param {Object} props - The component props.
+ * @param {Object} props.contact - The contact information.
+ * @param {string} props.contact.name - The name of the contact.
+ * @param {string} props.contact.state - The state of the contact (optional).
+ * @param {string} props.contact.statusMessage - The status message of the contact (optional).
+ * @returns {JSX.Element|null} The rendered chat header component.
+ */
 const ChatHeader = ({ contact }) => {
     if (!contact) {
         return null;

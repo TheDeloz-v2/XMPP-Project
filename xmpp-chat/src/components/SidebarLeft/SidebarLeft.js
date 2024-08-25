@@ -6,6 +6,18 @@ import GroupInfoModal from './GroupInfoModal/GroupInfoModal';
 import CreateGroupModal from '../CreateGroupModal/CreateGroupModal'; 
 import './SidebarLeft.scss';
 
+/**
+ * SidebarLeft component represents the left sidebar of the XMPP chat application.
+ * It displays the contact list and group list, and provides functionality to search, add contacts, create groups, and manage contact/group information.
+ *
+ * @component
+ * @param {Object} props - The component props.
+ * @param {Object} props.xmppClient - The XMPP client instance.
+ * @param {Function} props.onSelectContact - The function to handle contact selection.
+ * @param {Array} props.groups - The list of groups.
+ * @param {Function} props.setGroups - The function to set the list of groups.
+ * @returns {JSX.Element} The JSX element representing the SidebarLeft component.
+ */
 const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
     const [contacts, setContacts] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -166,7 +178,7 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
                     <div
                         key={group.jid}
                         className="contact-item"
-                        onClick={() => handleSelectContact(group.jid)} // Maneja la selección del grupo
+                        onClick={() => handleSelectContact(group.jid)}
                     >
                         <div className="contact-info">
                             <div className="name">{group.jid.split('@')[0]}</div>

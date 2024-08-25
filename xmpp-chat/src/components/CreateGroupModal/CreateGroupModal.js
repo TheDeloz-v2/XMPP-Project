@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import './CreateGroupModal.scss';
 
+/**
+ * CreateGroupModal component.
+ *
+ * @component
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Indicates if the modal is open.
+ * @param {function} props.onClose - The function to close the modal.
+ * @param {function} props.onCreateGroup - The function to create a new group.
+ * @returns {JSX.Element|null} The CreateGroupModal component.
+ */
 const CreateGroupModal = ({ isOpen, onClose, onCreateGroup }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');

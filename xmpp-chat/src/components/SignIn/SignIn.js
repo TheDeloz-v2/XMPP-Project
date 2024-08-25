@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import SignUpModal from './SignUpModal/SignUpModal';
 import "./SignIn.scss";
 
+/**
+ * Sign in component for user authentication.
+ *
+ * @returns {JSX.Element} The sign in component.
+ */
 const SignIn = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");

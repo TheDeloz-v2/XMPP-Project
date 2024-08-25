@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import './AddContactModal.scss';
 
+/**
+ * AddContactModal component.
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Flag indicating if the modal is open.
+ * @param {Function} props.onClose - Function to close the modal.
+ * @param {Function} props.onAddContact - Function to add a contact.
+ * @returns {JSX.Element|null} The AddContactModal component.
+ */
 const AddContactModal = ({ isOpen, onClose, onAddContact }) => {
     const [xmppAddress, setXmppAddress] = useState("");
     const [message, setMessage] = useState("");

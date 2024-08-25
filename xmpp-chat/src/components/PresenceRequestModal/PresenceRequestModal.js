@@ -1,6 +1,14 @@
 import React from 'react';
 import './PresenceRequestModal.scss';
 
+/**
+ * Represents a modal component for presence request.
+ * @param {Object} props - The component props.
+ * @param {string} props.requester - The name of the requester.
+ * @param {Function} props.onAccept - The function to handle accept action.
+ * @param {Function} props.onDecline - The function to handle decline action.
+ * @returns {JSX.Element} The presence request modal component.
+ */
 const PresenceRequestModal = ({ requester, onAccept, onDecline }) => {
     return (
         <div className="presence-request-modal">

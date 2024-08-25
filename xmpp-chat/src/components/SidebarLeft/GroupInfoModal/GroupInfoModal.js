@@ -2,6 +2,17 @@ import React, { useState } from 'react';
 import './GroupInfoModal.scss';
 import InviteToGroupModal from '../../InviteToGroupModal/InviteToGroupModal';
 
+/**
+ * GroupInfoModal component displays information about a group.
+ * 
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Flag indicating if the modal is open.
+ * @param {Object} props.group - The group object containing information about the group.
+ * @param {Function} props.onClose - The function to close the modal.
+ * @param {Function} props.onLeaveGroup - The function to leave the group.
+ * @param {Function} props.onInvite - The function to invite users to the group.
+ * @returns {JSX.Element|null} The GroupInfoModal component.
+ */
 const GroupInfoModal = ({ isOpen, group, onClose, onLeaveGroup, onInvite }) => {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
@@ -38,4 +49,3 @@ const GroupInfoModal = ({ isOpen, group, onClose, onLeaveGroup, onInvite }) => {
 };
 
 export default GroupInfoModal;
-

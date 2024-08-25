@@ -1,6 +1,16 @@
 import React from 'react';
 import './GroupInviteModal.scss';
 
+/**
+ * GroupInviteModal component.
+ * 
+ * @param {Object} props - The component props.
+ * @param {string} props.groupJid - The JID of the group.
+ * @param {string} props.inviter - The name of the inviter.
+ * @param {Function} props.onJoin - The function to be called when the user joins the group.
+ * @param {Function} props.onDecline - The function to be called when the user declines the invitation.
+ * @returns {JSX.Element} The GroupInviteModal component.
+ */
 const GroupInviteModal = ({ groupJid, inviter, onJoin, onDecline }) => {
     return (
         <div className="group-invite-modal">

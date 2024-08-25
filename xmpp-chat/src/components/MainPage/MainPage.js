@@ -9,6 +9,14 @@ import GroupInviteModal from "../GroupInviteModal/GroupInviteModal";
 import PresenceRequestModal from "../PresenceRequestModal/PresenceRequestModal";
 import "./MainPage.scss";
 
+/**
+ * The MainPage component represents the main page of the XMPP chat application.
+ * It handles the rendering of the main container, sidebar, chat box, and modals.
+ * The component also manages the state for selected contact, messages, group invites, and presence requests.
+ * It interacts with the XmppClientSingleton to handle XMPP client operations.
+ *
+ * @returns {JSX.Element} The rendered MainPage component.
+ */
 const MainPage = () => {
     const navigate = useNavigate();
     const [selectedContactId, setSelectedContactId] = useState(null);
@@ -132,5 +140,3 @@ const MainPage = () => {
 };
 
 export default MainPage;
-
-

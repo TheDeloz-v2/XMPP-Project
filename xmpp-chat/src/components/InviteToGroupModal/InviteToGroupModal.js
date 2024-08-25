@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import './InviteToGroupModal.scss';
 
+/**
+ * InviteToGroupModal component.
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Flag indicating if the modal is open.
+ * @param {function} props.onClose - Function to handle modal close event.
+ * @param {function} props.onInvite - Function to handle invite event.
+ * @param {string} props.groupJid - The JID of the group.
+ * @returns {JSX.Element|null} The InviteToGroupModal component.
+ */
 const InviteToGroupModal = ({ isOpen, onClose, onInvite, groupJid }) => {
     const [inviteeJid, setInviteeJid] = useState('');
     const [reason, setReason] = useState('');

@@ -5,6 +5,13 @@ import MessageInput from './MessageInput/MessageInput';
 import XmppClientSingleton from '../../xmppClient';
 import './ChatBox.scss';
 
+/**
+ * ChatBox component.
+ * 
+ * @param {Object} props - The component props.
+ * @param {Object} props.selectedContact - The selected contact object.
+ * @returns {JSX.Element} The rendered ChatBox component.
+ */
 const ChatBox = ({ selectedContact }) => {
     const [messages, setMessages] = useState({});
     const [replyingTo, setReplyingTo] = useState(null);
@@ -92,7 +99,7 @@ const ChatBox = ({ selectedContact }) => {
                 };
             });
     
-            // Enviar el archivo codificado en base64
+            // Send the file to the selected contact
             XmppClientSingleton.sendMessage(selectedContact.jid, base64File);
         }
     };    

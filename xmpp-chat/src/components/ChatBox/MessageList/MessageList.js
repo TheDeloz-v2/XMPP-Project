@@ -1,6 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import './MessageList.scss';
 
+/**
+ * Renders a list of messages in a chat box.
+ * 
+ * @param {Object[]} messages - An array of message objects.
+ * @param {Function} onReply - A callback function to handle reply action.
+ * @returns {JSX.Element} The rendered message list component.
+ */
 const MessageList = ({ messages, onReply }) => {
     const messageEndRef = useRef(null);
 

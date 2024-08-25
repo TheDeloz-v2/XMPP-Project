@@ -1,6 +1,20 @@
 import React from 'react';
 import './ContactInfoModal.scss';
 
+/**
+ * ContactInfoModal component displays the information of a contact in a modal.
+ * 
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isOpen - Indicates whether the modal is open or not.
+ * @param {Object} props.contact - The contact object containing contact details.
+ * @param {string} props.contact.jid - The JID (Jabber ID) of the contact.
+ * @param {string} props.contact.name - The name of the contact.
+ * @param {string} props.contact.state - The state of the contact.
+ * @param {Function} props.onClose - The function to close the modal.
+ * @param {Function} props.onDeleteContact - The function to delete the contact.
+ * @param {Function} props.onToggleStatusSharing - The function to toggle status sharing.
+ * @returns {JSX.Element|null} The ContactInfoModal component.
+ */
 const ContactInfoModal = ({ isOpen, contact, onClose, onDeleteContact, onToggleStatusSharing }) => {
     const handleDelete = async () => {
         try {

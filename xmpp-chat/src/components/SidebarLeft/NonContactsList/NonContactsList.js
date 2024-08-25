@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import XmppClientSingleton from "../../../xmppClient";
 import './NonContactsList.scss';
 
+/**
+ * NonContactsList component.
+ * 
+ * @param {Object[]} contacts - The list of contacts.
+ * @param {Function} onSelectContact - The function to handle contact selection.
+ * @returns {JSX.Element} The NonContactsList component.
+ */
 const NonContactsList = ({ contacts, onSelectContact }) => {
     const [nonContacts, setNonContacts] = useState([]);
     const [unreadCounts, setUnreadCounts] = useState({});

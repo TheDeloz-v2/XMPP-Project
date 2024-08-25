@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './MessageInput.scss';
 
+/**
+ * Represents a message input component.
+ * @param {Object} props - The component props.
+ * @param {Function} props.onSendMessage - The function to call when sending a message.
+ * @param {string} props.replyingTo - The message being replied to.
+ * @param {Function} props.onCancelReply - The function to call when canceling a reply.
+ * @param {Function} props.onSendFile - The function to call when sending a file.
+ * @returns {JSX.Element} The rendered message input component.
+ */
 const MessageInput = ({ onSendMessage, replyingTo, onCancelReply, onSendFile }) => {
     const [message, setMessage] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
