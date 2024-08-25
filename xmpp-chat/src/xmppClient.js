@@ -430,7 +430,78 @@ const XmppClientSingleton = (() => {
             console.error('Error al salir del grupo:', err);
         });
     };
+
+    const createGroup = async ({ name, description = '', isPrivate = false, address }) => {
+        try {
+            const roomJid = address;
     
+            // Enviar presencia inicial para crear la sala
+            const presence = xml(
+                'presence',
+                { to: `${roomJid}/${xmppClient.username}` },
+                xml('x', { xmlns: 'http://jabber.org/protocol/muc' })
+            );
+    
+            await xmppClient.send(presence);
+            console.log(`Grupo creado con JID: ${roomJid}`);
+    
+            // Configurar la sala (nombre, descripción, privacidad)
+            const iq = xml(
+                'iq',
+                { to: roomJid, type: 'set' },
+                xml('query', { xmlns: 'http://jabber.org/protocol/muc#owner' },
+                    xml('x', { xmlns: 'jabber:x:data', type: 'submit' },
+                        xml('field', { var: 'FORM_TYPE', type: 'hidden' },
+                            xml('value', {}, 'http://jabber.org/protocol/muc#roomconfig')
+                        ),
+                        xml('field', { var: 'muc#roomconfig_roomname' },
+                            xml('value', {}, name)
+                        ),
+                        xml('field', { var: 'muc#roomconfig_roomdesc' },
+                            xml('value', {}, description)
+                        ),
+                        xml('field', { var: 'muc#roomconfig_publicroom' },
+                            xml('value', {}, isPrivate ? '0' : '1')
+                        ),
+                        xml('field', { var: 'muc#roomconfig_persistentroom' },
+                            xml('value', {}, '1')
+                        ),
+                        xml('field', { var: 'muc#roomconfig_membersonly' },
+                            xml('value', {}, isPrivate ? '1' : '0')
+                        )
+                    )
+                )
+            );
+    
+            await xmppClient.send(iq);
+            console.log(`Grupo configurado: ${name}, privado: ${isPrivate}`);
+    
+            return roomJid;
+        } catch (error) {
+            console.error('Error al crear el grupo:', error);
+            throw error;
+        }
+    };    
+    
+    const inviteToGroup = async (groupJid, inviteeJid, reason = '') => {
+        try {
+            const messageStanza = xml(
+                'message',
+                { to: groupJid },
+                xml('x', { xmlns: 'http://jabber.org/protocol/muc#user' },
+                    xml('invite', { to: inviteeJid },
+                        reason ? xml('reason', {}, reason) : null
+                    )
+                )
+            );
+    
+            await xmppClient.send(messageStanza);
+            console.log(`Invitación enviada a ${inviteeJid} para unirse al grupo ${groupJid}`);
+        } catch (error) {
+            console.error('Error al invitar al usuario al grupo:', error);
+            throw error;
+        }
+    };    
 
     return {
         createClient,
@@ -456,6 +527,8 @@ const XmppClientSingleton = (() => {
         acceptPresenceRequest,
         declinePresenceRequest,
         leaveGroup,
+        createGroup,
+        inviteToGroup,
     };
 })();
 

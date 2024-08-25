@@ -3,6 +3,7 @@ import XmppClientSingleton from "../../xmppClient";
 import AddContactModal from './AddContactModal/AddContactModal';
 import ContactInfoModal from './ContactInfoModal/ContactInfoModal';
 import GroupInfoModal from './GroupInfoModal/GroupInfoModal';
+import CreateGroupModal from '../CreateGroupModal/CreateGroupModal'; 
 import './SidebarLeft.scss';
 
 const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
@@ -14,6 +15,7 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
     const [unreadCounts, setUnreadCounts] = useState({});
     const [contactStates, setContactStates] = useState({});
     const [searchTerm, setSearchTerm] = useState('');
+    const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
 
     useEffect(() => {
         const loadContacts = async () => {
@@ -82,6 +84,24 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
         setSearchTerm(event.target.value);
     };
 
+    const handleCreateGroup = async (groupData) => {
+        try {
+            const roomJid = await XmppClientSingleton.createGroup(groupData);
+            XmppClientSingleton.joinGroup(roomJid, XmppClientSingleton.getClient().username);
+            setGroups(prevGroups => [...prevGroups, { jid: roomJid, messages: [] }]);
+        } catch (error) {
+            console.error('Error al crear el grupo:', error);
+        }
+    };
+
+    const handleInviteToGroup = async (groupJid, inviteeJid, reason) => {
+        try {
+            await XmppClientSingleton.inviteToGroup(groupJid, inviteeJid, reason);
+        } catch (error) {
+            console.error('Error al invitar al usuario al grupo:', error);
+        }
+    }
+
     const filteredContacts = contacts.filter((contact) => {
         return contact.name.toLowerCase().includes(searchTerm.toLowerCase());
     });
@@ -101,6 +121,7 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
                     onChange={handleSearch}
                 />
                 <button className="add-contact-btn" onClick={() => setIsAddModalOpen(true)}>+</button>
+                <button className="create-group-btn" onClick={() => setIsCreateGroupModalOpen(true)}>Crear Grupo</button>
             </div>
 
             <div className="contact-list">
@@ -171,8 +192,14 @@ const SidebarLeft = ({ xmppClient, onSelectContact, groups, setGroups }) => {
                     group={selectedGroup}
                     onClose={() => setIsInfoModalOpen(false)}
                     onLeaveGroup={handleLeaveGroup}
+                    onInvite={handleInviteToGroup}
                 />
             )}
+            <CreateGroupModal
+                isOpen={isCreateGroupModalOpen}
+                onClose={() => setIsCreateGroupModalOpen(false)}
+                onCreateGroup={handleCreateGroup}
+            />
         </div>
     );
 };

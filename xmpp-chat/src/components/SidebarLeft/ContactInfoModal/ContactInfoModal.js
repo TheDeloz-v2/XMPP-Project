@@ -5,17 +5,9 @@ const ContactInfoModal = ({ isOpen, contact, onClose, onDeleteContact, onToggleS
     const handleDelete = async () => {
         try {
             await onDeleteContact(contact.jid);
-            onClose(); // Cerrar el modal
+            onClose(); 
         } catch (error) {
             console.error('Error al eliminar el contacto:', error);
-        }
-    };
-
-    const handleToggleSharing = (type) => {
-        if (onToggleStatusSharing) {
-            onToggleStatusSharing(contact.jid, type);
-        } else {
-            console.error('onToggleStatusSharing no está definido');
         }
     };
 
